@@ -8,17 +8,13 @@ import {
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 
-// Import tool implementations
-import { finvizTechnicalScreen, advancedStockFilter } from './tools/screening.js';
+import { advancedStockFilter } from './tools/screening.js';
 import { getFundamentalMetrics, analyzeValuationMetrics, calculateFinancialHealthScore } from './tools/fundamentals.js';
 import { getInsiderActivity, analyzeInsiderSentiment } from './tools/insider.js';
 import { searchRedditPosts, getRedditComments, getTrendingTickers, analyzeSocialSentiment } from './tools/social.js';
 import { getLatestNews, analyzeNewsImpact, getMarketContext } from './tools/news.js';
-
-// Import configuration helpers
 import { isRedditConfigured, isOpenAIConfigured } from './config.js';
 
-// Initialize the server
 const server = new Server(
   {
     name: 'trading-mcp',
@@ -31,47 +27,16 @@ const server = new Server(
   }
 );
 
-// Define all available tools
 const tools: Tool[] = [
-  // Stock Screening Tools
-  {
-    name: 'finviz_technical_screen',
-    description: 'Screen stocks using Finviz technical patterns and filters. Finds stocks matching specific technical chart patterns.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        pattern: {
-          type: 'string',
-          description: 'Technical pattern to screen for (e.g., channel_down, triangle_ascending, support)',
-          default: 'channel_down',
-        },
-        market_cap: {
-          type: 'string',
-          description: 'Market cap filter (nano, micro, small, mid, large, mega)',
-          default: 'large',
-        },
-        geo: {
-          type: 'string',
-          description: 'Geographic filter (usa, foreign)',
-          default: 'usa',
-        },
-        limit: {
-          type: 'number',
-          description: 'Maximum number of results to return',
-          default: 20,
-        },
-      },
-    },
-  },
-  {
-    name: 'advanced_stock_filter',
-    description: 'Apply advanced Finviz filters for custom stock screening with multiple filter combinations.',
+gss  {
+    name: 'screen_stocks_advanced_filters',
+    description: 'Comprehensive stock screening using Finviz filters that supports technical patterns, fundamental criteria, and multi-parameter filtering. Use this when you need to find stocks matching specific investment criteria like channel down patterns, profitable companies, or large-cap stocks. The tool returns a ranked list of stocks with key metrics including market cap, P/E ratios, and current prices. Supports complex filter combinations for advanced screening strategies using Finviz format parameters.',
     inputSchema: {
       type: 'object',
       properties: {
         filters: {
           type: 'object',
-          description: 'Advanced filter parameters as key-value pairs (e.g., {"f": "fa_pe_low,ta_rsi_os30", "o": "pe"})',
+          description: 'Advanced filter parameters using Finviz format. Use "f" for basic filters (comma-separated), "s" for technical signals, "o" for ordering. Example: {"f": "cap_large,fa_pe_profitable,geo_usa", "s": "ta_p_channeldown", "o": "marketcap"}',
           default: {},
         },
         limit: {
@@ -83,10 +48,9 @@ const tools: Tool[] = [
     },
   },
 
-  // Fundamental Analysis Tools
   {
-    name: 'get_fundamental_metrics',
-    description: 'Retrieve comprehensive fundamental metrics for a stock including P/E, PEG, ROE, debt ratios, and growth metrics.',
+    name: 'get_fundamental_stock_metrics',
+    description: 'Comprehensive fundamental analysis tool that retrieves detailed financial metrics including P/E ratios, PEG, ROE, debt ratios, growth rates, and profitability margins. Use this when conducting deep fundamental analysis of individual stocks for investment decisions or valuation assessments. The tool returns complete financial data with key ratios, growth metrics, and profitability indicators. Supports selective metric retrieval for targeted analysis.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -104,8 +68,8 @@ const tools: Tool[] = [
     },
   },
   {
-    name: 'analyze_valuation_metrics',
-    description: 'Compare valuation metrics across multiple stocks to identify relative value opportunities.',
+    name: 'compare_stock_valuations',
+    description: 'Relative valuation analysis tool that compares key valuation metrics across multiple stocks to identify undervalued or overvalued opportunities. Use this when performing peer analysis, sector comparisons, or evaluating multiple investment candidates side-by-side. The tool returns a comparative analysis with P/E, PEG, Price-to-Book ratios and highlights relative value opportunities. Essential for making informed investment decisions based on relative attractiveness.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -125,8 +89,8 @@ const tools: Tool[] = [
     },
   },
   {
-    name: 'financial_health_score',
-    description: 'Calculate a comprehensive financial health score based on profitability, liquidity, leverage, efficiency, and growth metrics.',
+    name: 'calculate_financial_health_score',
+    description: 'Financial health analysis tool that calculates a comprehensive score based on profitability, liquidity, leverage, efficiency, and growth metrics. Use this when evaluating the overall financial strength of a company for investment decisions, risk assessment, or portfolio screening. Returns a weighted health score (0-100) with detailed breakdowns of each category, component analysis, and actionable insights. Allows custom weighting of different financial factors to match your investment strategy.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -150,10 +114,9 @@ const tools: Tool[] = [
     },
   },
 
-  // Insider Trading Tools
   {
-    name: 'get_insider_activity',
-    description: 'Retrieve recent insider trading activity for a stock including transactions by executives and directors.',
+    name: 'track_insider_trading_activity',
+    description: 'Insider trading monitoring tool that retrieves recent transactions by executives, directors, and major shareholders including buy/sell activity, transaction amounts, and timing. Use this when analyzing insider sentiment, investigating potential red flags, or looking for bullish insider buying signals before making investment decisions. The tool returns detailed transaction history with insider names, positions, transaction types, and monetary values. Helps identify patterns of insider confidence or concern.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -177,7 +140,7 @@ const tools: Tool[] = [
   },
   {
     name: 'analyze_insider_sentiment',
-    description: 'Analyze insider trading patterns to determine overall insider sentiment (bullish, bearish, neutral).',
+    description: 'Insider sentiment analysis tool that evaluates trading patterns to determine overall insider confidence (bullish, bearish, neutral) based on recent transaction history and patterns. Use this when assessing management confidence, detecting potential insider knowledge of upcoming events, or validating your investment thesis with insider behavior. The tool returns sentiment classification, confidence scores, transaction pattern analysis, and key insights about insider motivation. Particularly valuable for identifying stocks with strong insider support.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -201,13 +164,11 @@ const tools: Tool[] = [
   },
 ];
 
-// Conditional tools that require API configuration
 if (isRedditConfigured()) {
   tools.push(
-    // Social Media Research Tools
     {
-      name: 'search_reddit_posts',
-      description: 'Search Reddit for posts mentioning a specific stock ticker across multiple subreddits.',
+      name: 'search_reddit_stock_discussions',
+      description: 'Social media research tool that searches Reddit for posts mentioning specific stock tickers across multiple investing subreddits including WallStreetBets, r/stocks, and r/investing. Use this when gauging retail investor sentiment, identifying emerging trends, or researching community opinions about specific stocks. The tool returns relevant posts with titles, content, engagement metrics, and timestamps. Essential for understanding retail investor behavior and social sentiment around your investment targets.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -243,8 +204,8 @@ if (isRedditConfigured()) {
       },
     },
     {
-      name: 'get_reddit_comments',
-      description: 'Retrieve comments from a specific Reddit post for detailed sentiment analysis.',
+      name: 'extract_reddit_post_comments',
+      description: 'Comment analysis tool that retrieves detailed comments from specific Reddit posts to analyze community sentiment and extract investment insights. Use this when diving deeper into specific discussions, analyzing comment sentiment, or gathering detailed opinions from a particular post about a stock. The tool returns comment threads with content, scores, timestamps, and user engagement data. Valuable for understanding the depth of community sentiment beyond just post titles.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -262,8 +223,8 @@ if (isRedditConfigured()) {
       },
     },
     {
-      name: 'get_trending_tickers',
-      description: 'Find trending stock tickers mentioned across Reddit investing communities.',
+      name: 'discover_trending_stocks',
+      description: 'Social momentum detection tool that identifies stocks gaining significant attention and discussion volume across Reddit investing communities. Use this when looking for emerging investment opportunities, detecting viral stock movements, or identifying potential meme stock candidates before they peak. The tool returns ranked lists of trending tickers with mention frequency, sentiment indicators, and community engagement metrics. Perfect for staying ahead of retail investor trends and social media-driven market movements.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -286,10 +247,9 @@ if (isRedditConfigured()) {
 
 if (isOpenAIConfigured()) {
   tools.push(
-    // News Analysis Tools
     {
-      name: 'get_latest_news',
-      description: 'Get and analyze the latest news articles about a stock using AI-powered summarization and sentiment analysis.',
+      name: 'analyze_stock_news_sentiment',
+      description: 'AI-powered news analysis tool that retrieves and analyzes recent news articles about stocks using advanced summarization and sentiment classification. Use this when researching current events affecting a stock, assessing news-driven price movements, or staying updated on company developments. The tool returns analyzed articles with sentiment scores, key themes, market relevance ratings, and AI-generated summaries. Essential for understanding how current events may impact your investment decisions.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -317,8 +277,8 @@ if (isOpenAIConfigured()) {
       },
     },
     {
-      name: 'analyze_news_impact',
-      description: 'Analyze the potential market impact of specific news items on a stock price.',
+      name: 'assess_news_market_impact',
+      description: 'Market impact assessment tool that analyzes how specific news headlines or events will likely affect stock price movements using AI-powered analysis. Use this when evaluating the significance of breaking news, earnings announcements, or major corporate events for investment timing decisions. The tool returns impact predictions, confidence levels, historical context, and trading implications. Crucial for making informed buy/sell decisions around news events.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -336,8 +296,8 @@ if (isOpenAIConfigured()) {
       },
     },
     {
-      name: 'market_context_analysis',
-      description: 'Provide broader market and sector context analysis for a stock.',
+      name: 'analyze_market_sector_context',
+      description: 'Broader market context analysis tool that provides comprehensive sector and market condition analysis to understand how individual stocks fit into current economic trends. Use this when evaluating whether stock movements are company-specific or part of broader market/sector trends, assessing systematic risk, or making sector rotation decisions. The tool returns market condition assessments, sector performance analysis, relative positioning, and macroeconomic context. Essential for understanding the bigger picture behind individual stock performance.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -356,11 +316,10 @@ if (isOpenAIConfigured()) {
   );
 }
 
-// Add social sentiment analysis if both Reddit and OpenAI are configured
 if (isRedditConfigured() && isOpenAIConfigured()) {
   tools.push({
-    name: 'analyze_social_sentiment',
-    description: 'Analyze social media sentiment for a stock by combining Reddit posts with AI-powered sentiment analysis.',
+    name: 'analyze_social_media_sentiment',
+    description: 'Advanced social sentiment analysis tool that combines Reddit post data with AI-powered sentiment classification to gauge retail investor sentiment and community opinion. Use this when assessing overall market sentiment, detecting sentiment shifts before price movements, or validating investment decisions against community consensus. The tool returns comprehensive sentiment analysis with confidence scores, key themes, emotional indicators, and community engagement metrics. Combines the reach of social media monitoring with the precision of AI analysis for superior market sentiment insights.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -391,55 +350,45 @@ if (isRedditConfigured() && isOpenAIConfigured()) {
   });
 }
 
-// List tools handler
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return { tools };
 });
 
-// Tool execution handler
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
   try {
     switch (name) {
-      // Stock Screening Tools
-      case 'finviz_technical_screen':
-        return await finvizTechnicalScreen(args);
-      case 'advanced_stock_filter':
+      case 'screen_stocks_advanced_filters':
         return await advancedStockFilter(args);
 
-      // Fundamental Analysis Tools
-      case 'get_fundamental_metrics':
+      case 'get_fundamental_stock_metrics':
         return await getFundamentalMetrics(args);
-      case 'analyze_valuation_metrics':
+      case 'compare_stock_valuations':
         return await analyzeValuationMetrics(args);
-      case 'financial_health_score':
+      case 'calculate_financial_health_score':
         return await calculateFinancialHealthScore(args);
 
-      // Insider Trading Tools
-      case 'get_insider_activity':
+      case 'track_insider_trading_activity':
         return await getInsiderActivity(args);
       case 'analyze_insider_sentiment':
         return await analyzeInsiderSentiment(args);
 
-      // Social Media Research Tools (Reddit required)
-      case 'search_reddit_posts':
+      case 'search_reddit_stock_discussions':
         return await searchRedditPosts(args);
-      case 'get_reddit_comments':
+      case 'extract_reddit_post_comments':
         return await getRedditComments(args);
-      case 'get_trending_tickers':
+      case 'discover_trending_stocks':
         return await getTrendingTickers(args);
 
-      // News Analysis Tools (OpenAI required)
-      case 'get_latest_news':
+      case 'analyze_stock_news_sentiment':
         return await getLatestNews(args);
-      case 'analyze_news_impact':
+      case 'assess_news_market_impact':
         return await analyzeNewsImpact(args);
-      case 'market_context_analysis':
+      case 'analyze_market_sector_context':
         return await getMarketContext(args);
 
-      // Social Sentiment Analysis (Both Reddit and OpenAI required)
-      case 'analyze_social_sentiment':
+      case 'analyze_social_media_sentiment':
         return await analyzeSocialSentiment(args);
 
       default:
@@ -467,11 +416,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 });
 
-// Start the server
-/**
- * Main function to start the Trading MCP Server
- * Initializes the server with stdio transport and connects to the MCP protocol
- */
 async function main() {
   const transport = new StdioServerTransport();
   
@@ -484,7 +428,6 @@ async function main() {
   console.error('Trading MCP Server running');
 }
 
-// Handle shutdown gracefully
 process.on('SIGINT', () => {
   console.error('Trading MCP Server shutting down...');
   process.exit(0);
@@ -498,4 +441,4 @@ process.on('SIGTERM', () => {
 main().catch((error) => {
   console.error('Server failed to start:', error);
   process.exit(1);
-}); 
+});

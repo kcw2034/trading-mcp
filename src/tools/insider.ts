@@ -2,17 +2,15 @@ import { z } from 'zod';
 import { FinvizAdapter } from '../adapters/finviz.js';
 import { InsiderTransaction } from '../types/index.js';
 
-// Schema for getting insider activity
 const InsiderActivitySchema = z.object({
   ticker: z.string(),
   limit: z.number().default(10),
   transaction_types: z.array(z.string()).optional(),
 });
 
-// Schema for insider sentiment analysis
 const InsiderSentimentSchema = z.object({
   ticker: z.string(),
-  analysis_period: z.number().default(90), // days
+  analysis_period: z.number().default(90),
   min_transaction_value: z.number().default(10000),
 });
 
@@ -383,4 +381,4 @@ function getSignificantTransactions(transactions: InsiderTransaction[], limit: n
   return transactions
     .sort((a, b) => Math.abs(parseTransactionValue(b.value)) - Math.abs(parseTransactionValue(a.value)))
     .slice(0, limit);
-} 
+}

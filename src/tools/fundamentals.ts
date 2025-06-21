@@ -2,19 +2,16 @@ import { z } from 'zod';
 import { FinvizAdapter } from '../adapters/finviz.js';
 import { FundamentalMetrics } from '../types/index.js';
 
-// Schema for getting fundamental metrics
 const FundamentalMetricsSchema = z.object({
   ticker: z.string(),
   metrics: z.array(z.string()).optional(),
 });
 
-// Schema for valuation analysis
 const ValuationAnalysisSchema = z.object({
   tickers: z.array(z.string()),
   metrics: z.array(z.string()).default(['pe', 'forwardPE', 'peg', 'priceToBook']),
 });
 
-// Schema for financial health score
 const FinancialHealthSchema = z.object({
   ticker: z.string(),
   weights: z.object({
@@ -436,4 +433,4 @@ function getGrowthInterpretation(score: number): string {
   if (score >= 60) return 'Moderate growth expected';
   if (score >= 40) return 'Limited growth prospects';
   return 'Declining or negative growth';
-} 
+}

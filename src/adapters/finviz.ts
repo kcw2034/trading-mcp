@@ -258,4 +258,4 @@ export class FinvizAdapter {
       throw new Error(`Failed to apply advanced filter: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
-} 
+}

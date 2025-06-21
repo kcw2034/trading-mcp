@@ -57,4 +57,4 @@ export const isRedditConfigured = (): boolean => {
  */
 export const isOpenAIConfigured = (): boolean => {
   return !!config.openaiApiKey;
-}; 
+};

@@ -40,9 +40,6 @@ Add this to your MCP configuration file (typically `~/.cursor/mcp.json` or your 
 
 ### Stock Screening Tools
 
-#### `finviz_technical_screen`
-Screen stocks using Finviz technical chart patterns. Find stocks matching specific patterns like channel down, triangle ascending, support levels, etc. Filter by market cap and geography.
-
 #### `advanced_stock_filter`
 Apply advanced multi-criteria stock screening with custom filter combinations. Use complex Finviz parameters to find stocks matching specific fundamental and technical criteria.
 

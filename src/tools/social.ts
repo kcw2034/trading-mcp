@@ -300,4 +300,4 @@ export const STOCK_SUBREDDITS = {
   'DDintoGME': 'Deep analysis posts',
   'Superstonk': 'GameStop focused but includes general DD',
   'StockAnalysis': 'Stock analysis and research',
-}; 
+};

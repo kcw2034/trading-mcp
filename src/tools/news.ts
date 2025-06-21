@@ -290,4 +290,4 @@ export const SENTIMENT_INDICATORS = {
   positive: ['growth', 'profit', 'revenue beat', 'upgrade', 'partnership', 'acquisition', 'approval'],
   negative: ['loss', 'revenue miss', 'downgrade', 'lawsuit', 'investigation', 'decline', 'bankruptcy'],
   neutral: ['maintenance', 'meeting', 'announcement', 'update', 'statement'],
-}; 
+};

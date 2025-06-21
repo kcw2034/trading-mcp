@@ -360,4 +360,4 @@ export class OpenAIAdapter {
     if (articleCount >= 2) return 'medium';
     return 'low';
   }
-} 
+}

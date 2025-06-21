@@ -1,14 +1,6 @@
 import { z } from 'zod';
 import { FinvizAdapter } from '../adapters/finviz.js';
 
-// Schema for finviz technical screen
-const TechnicalScreenSchema = z.object({
-  pattern: z.string().default('channel_down'),
-  market_cap: z.string().default('large'),
-  geo: z.string().default('usa'),
-  limit: z.number().default(20),
-});
-
 // Schema for advanced stock filter
 const AdvancedFilterSchema = z.object({
   filters: z.record(z.string()).default({}),
@@ -16,45 +8,17 @@ const AdvancedFilterSchema = z.object({
   limit: z.number().default(50),
 });
 
-export async function finvizTechnicalScreen(args: unknown) {
-  try {
-    const { pattern, market_cap, geo, limit } = TechnicalScreenSchema.parse(args);
-    
-    const finviz = new FinvizAdapter();
-    const results = await finviz.screenStocks(pattern, market_cap, geo);
-    
-    const limitedResults = results.slice(0, limit);
-    
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: JSON.stringify({
-            query: {
-              pattern,
-              market_cap,
-              geo,
-              limit,
-            },
-            results: limitedResults,
-            total_found: limitedResults.length,
-            summary: `Found ${limitedResults.length} stocks matching technical pattern '${pattern}' with ${market_cap} market cap`,
-          }, null, 2),
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `Error in technical screening: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        },
-      ],
-      isError: true,
-    };
-  }
-}
+/**
+ * Advanced stock filtering using proper Finviz parameter format
+ * 
+ * Filter format should use:
+ * - "f": comma-separated basic filters (e.g., "cap_large,fa_pe_profitable,geo_usa")
+ * - "s": technical signals (e.g., "ta_p_channeldown", "ta_p_channelup")
+ * - "o": ordering/sorting (e.g., "marketcap", "pe", "volume")
+ * 
+ * Example usage:
+ * {"f": "cap_large,fa_pe_profitable,geo_usa", "s": "ta_p_channeldown", "o": "marketcap"}
+ */
 
 export async function advancedStockFilter(args: unknown) {
   try {
@@ -245,25 +209,29 @@ export const FINVIZ_FILTERS = {
   ta_pattern_wedgedescending: 'Descending Wedge',
 };
 
-// Finviz signal codes (use these for signal parameter, not filters)
+// Technical signals for use with "s" parameter (preferred over patterns)
 export const FINVIZ_SIGNALS = {
-  // Technical Analysis Signals
-  ta_p_channeldown: 'Channel Down',
-  ta_p_channelup: 'Channel Up', 
-  ta_p_tlresistance: 'Trendline Resistance',
-  ta_p_tlsupport: 'Trendline Support',
-  ta_p_wedgeup: 'Wedge Up',
-  ta_p_wedgedown: 'Wedge Down',
-  ta_p_triangleascending: 'Triangle Ascending',
-  ta_p_triangledescending: 'Triangle Descending',
-  ta_p_wedge: 'Wedge',
-  ta_p_channel: 'Channel',
-  ta_p_doubletop: 'Double Top',
-  ta_p_doublebottom: 'Double Bottom',
-  ta_p_multipletop: 'Multiple Top',
-  ta_p_multiplebottom: 'Multiple Bottom',
-  ta_p_headandshoulders: 'Head and Shoulders',
-  ta_p_headandshouldersins: 'Head and Shoulders Inverse',
-  ta_p_horizontals: 'Horizontal Support',
-  ta_p_horizontalsr: 'Horizontal Resistance',
-}; 
+  // Channel patterns
+  ta_p_channeldown: 'Channel Down signal',
+  ta_p_channelup: 'Channel Up signal',
+  
+  // Trendline patterns  
+  ta_p_tlresistance: 'Trendline Resistance signal',
+  ta_p_tlsupport: 'Trendline Support signal',
+  
+  // Triangle patterns
+  ta_p_triangleascending: 'Ascending Triangle signal',
+  ta_p_triangledescending: 'Descending Triangle signal',
+  
+  // Wedge patterns
+  ta_p_wedgeascending: 'Ascending Wedge signal',
+  ta_p_wedgedescending: 'Descending Wedge signal',
+  
+  // Support and resistance
+  ta_p_support: 'Support Level signal',
+  ta_p_resistance: 'Resistance Level signal',
+  
+  // Breakout patterns
+  ta_p_breakout: 'Breakout signal',
+  ta_p_breakdown: 'Breakdown signal',
+};

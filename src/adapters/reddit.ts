@@ -249,4 +249,4 @@ export class RedditAdapter {
       throw new Error(`Failed to get trending tickers: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
-} 
+}
