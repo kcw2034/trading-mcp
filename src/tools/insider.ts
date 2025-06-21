@@ -16,6 +16,113 @@ const InsiderSentimentSchema = z.object({
   min_transaction_value: z.number().default(10000),
 });
 
+/**
+ * Utility class for processing insider transactions
+ */
+class InsiderTransactionProcessor {
+  private transactions: InsiderTransaction[];
+  private analysisPeriod: number;
+  private minValue: number;
+
+  constructor(transactions: InsiderTransaction[], analysisPeriod: number, minValue: number) {
+    this.transactions = transactions;
+    this.analysisPeriod = analysisPeriod;
+    this.minValue = minValue;
+  }
+
+  /**
+   * Filter transactions based on date and minimum value
+   */
+  getRelevantTransactions(): InsiderTransaction[] {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - this.analysisPeriod);
+    
+    return this.transactions.filter(transaction => {
+      const transactionDate = parseTransactionDate(transaction.date);
+      const transactionValue = parseTransactionValue(transaction.value);
+      
+      return transactionDate >= cutoffDate && Math.abs(transactionValue) >= this.minValue;
+    });
+  }
+
+  /**
+   * Categorize transactions into buys and sells
+   */
+  categorizeTransactions(relevantTransactions: InsiderTransaction[]) {
+    const buyTransactions: InsiderTransaction[] = [];
+    const sellTransactions: InsiderTransaction[] = [];
+    let totalBuyValue = 0;
+    let totalSellValue = 0;
+    
+    const insiderTypes: { [key: string]: { buys: number; sells: number; net_value: number } } = {};
+    
+    relevantTransactions.forEach(transaction => {
+      const value = parseTransactionValue(transaction.value);
+      const type = transaction.transactionType.toLowerCase();
+      const relationship = transaction.relationship.toLowerCase();
+      
+      // Initialize insider type tracking
+      if (!insiderTypes[relationship]) {
+        insiderTypes[relationship] = { buys: 0, sells: 0, net_value: 0 };
+      }
+      
+      if (isBuyTransaction(type)) {
+        buyTransactions.push(transaction);
+        totalBuyValue += Math.abs(value);
+        insiderTypes[relationship].buys++;
+        insiderTypes[relationship].net_value += Math.abs(value);
+      } else if (isSellTransaction(type)) {
+        sellTransactions.push(transaction);
+        totalSellValue += Math.abs(value);
+        insiderTypes[relationship].sells++;
+        insiderTypes[relationship].net_value -= Math.abs(value);
+      }
+    });
+
+    return {
+      buyTransactions,
+      sellTransactions,
+      totalBuyValue,
+      totalSellValue,
+      insiderTypes,
+    };
+  }
+
+  /**
+   * Calculate sentiment based on transaction ratios
+   */
+  calculateSentiment(totalBuyValue: number, totalSellValue: number, transactionCount: number): {
+    sentiment: 'bullish' | 'bearish' | 'neutral';
+    confidence: 'high' | 'medium' | 'low';
+  } {
+    const totalValue = totalBuyValue + totalSellValue;
+    const buyRatio = totalValue > 0 ? totalBuyValue / totalValue : 0;
+    
+    let sentiment: 'bullish' | 'bearish' | 'neutral';
+    let confidence: 'high' | 'medium' | 'low';
+    
+    // Determine sentiment
+    if (buyRatio >= 0.7) {
+      sentiment = 'bullish';
+    } else if (buyRatio <= 0.3) {
+      sentiment = 'bearish';
+    } else {
+      sentiment = 'neutral';
+    }
+    
+    // Determine confidence
+    if (transactionCount >= 10 && totalValue >= 1000000) {
+      confidence = 'high';
+    } else if (transactionCount >= 5 && totalValue >= 500000) {
+      confidence = 'medium';
+    } else {
+      confidence = 'low';
+    }
+
+    return { sentiment, confidence };
+  }
+}
+
 export async function getInsiderActivity(args: unknown) {
   try {
     const { ticker, limit, transaction_types } = InsiderActivitySchema.parse(args);
@@ -102,16 +209,8 @@ export async function analyzeInsiderSentiment(args: unknown) {
 }
 
 function calculateInsiderSentiment(transactions: InsiderTransaction[], analysisPeriod: number, minValue: number) {
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - analysisPeriod);
-  
-  // Filter transactions within the analysis period and above minimum value
-  const relevantTransactions = transactions.filter(transaction => {
-    const transactionDate = parseTransactionDate(transaction.date);
-    const transactionValue = parseTransactionValue(transaction.value);
-    
-    return transactionDate >= cutoffDate && Math.abs(transactionValue) >= minValue;
-  });
+  const processor = new InsiderTransactionProcessor(transactions, analysisPeriod, minValue);
+  const relevantTransactions = processor.getRelevantTransactions();
   
   if (relevantTransactions.length === 0) {
     return {
@@ -129,62 +228,23 @@ function calculateInsiderSentiment(transactions: InsiderTransaction[], analysisP
     };
   }
   
-  // Categorize transactions
-  const buyTransactions: InsiderTransaction[] = [];
-  const sellTransactions: InsiderTransaction[] = [];
-  let totalBuyValue = 0;
-  let totalSellValue = 0;
-  
-  const insiderTypes: { [key: string]: { buys: number; sells: number; net_value: number } } = {};
-  
-  relevantTransactions.forEach(transaction => {
-    const value = parseTransactionValue(transaction.value);
-    const type = transaction.transactionType.toLowerCase();
-    const relationship = transaction.relationship.toLowerCase();
-    
-    // Initialize insider type tracking
-    if (!insiderTypes[relationship]) {
-      insiderTypes[relationship] = { buys: 0, sells: 0, net_value: 0 };
-    }
-    
-    if (isBuyTransaction(type)) {
-      buyTransactions.push(transaction);
-      totalBuyValue += Math.abs(value);
-      insiderTypes[relationship].buys++;
-      insiderTypes[relationship].net_value += Math.abs(value);
-    } else if (isSellTransaction(type)) {
-      sellTransactions.push(transaction);
-      totalSellValue += Math.abs(value);
-      insiderTypes[relationship].sells++;
-      insiderTypes[relationship].net_value -= Math.abs(value);
-    }
-  });
-  
-  // Calculate sentiment
+  const {
+    buyTransactions,
+    sellTransactions, 
+    totalBuyValue,
+    totalSellValue,
+    insiderTypes,
+  } = processor.categorizeTransactions(relevantTransactions);
+
+  const { sentiment, confidence } = processor.calculateSentiment(
+    totalBuyValue,
+    totalSellValue,
+    relevantTransactions.length
+  );
+
   const netValue = totalBuyValue - totalSellValue;
   const totalValue = totalBuyValue + totalSellValue;
   const buyRatio = totalValue > 0 ? totalBuyValue / totalValue : 0;
-  
-  let overallSentiment: 'bullish' | 'bearish' | 'neutral';
-  let confidenceLevel: 'high' | 'medium' | 'low';
-  
-  // Determine sentiment
-  if (buyRatio >= 0.7) {
-    overallSentiment = 'bullish';
-  } else if (buyRatio <= 0.3) {
-    overallSentiment = 'bearish';
-  } else {
-    overallSentiment = 'neutral';
-  }
-  
-  // Determine confidence
-  if (relevantTransactions.length >= 10 && totalValue >= 1000000) {
-    confidenceLevel = 'high';
-  } else if (relevantTransactions.length >= 5 && totalValue >= 500000) {
-    confidenceLevel = 'medium';
-  } else {
-    confidenceLevel = 'low';
-  }
   
   // Generate insights
   const keyInsights = generateInsiderInsights(
@@ -196,8 +256,8 @@ function calculateInsiderSentiment(transactions: InsiderTransaction[], analysisP
   );
   
   return {
-    overall_sentiment: overallSentiment,
-    confidence_level: confidenceLevel,
+    overall_sentiment: sentiment,
+    confidence_level: confidence,
     transaction_summary: {
       total_transactions: relevantTransactions.length,
       buy_transactions: buyTransactions.length,

@@ -24,11 +24,19 @@ Add this to your MCP configuration file (typically `~/.cursor/mcp.json` or your 
 }
 ```
 
+## 🚀 Features
+
+- **📊 Stock Screening**: Technical pattern recognition and advanced multi-criteria filtering
+- **📈 Fundamental Analysis**: Comprehensive metrics, valuation comparison, and AI health scoring
+- **🏢 Insider Trading**: Real-time insider activity tracking and sentiment analysis
+- **💭 Social Media Research**: Reddit integration with AI-powered sentiment analysis
+- **📰 News Analysis**: AI-curated news with market impact assessment
+
+## 📚 Available Tools
+
 **Note:** 
 - OpenAI API key is required for news analysis and social sentiment analysis
 - Reddit credentials are optional but enable social media research features
-
-## 📚 Available Tools
 
 ### Stock Screening Tools
 
@@ -85,14 +93,6 @@ Assess the potential market impact of specific news headlines or events using AI
 
 #### `market_context_analysis`
 Provide broader market and sector context analysis to understand how individual stocks fit into current market conditions.
-
-## 🚀 Features
-
-- **📊 Stock Screening**: Technical pattern recognition and advanced multi-criteria filtering
-- **📈 Fundamental Analysis**: Comprehensive metrics, valuation comparison, and AI health scoring
-- **🏢 Insider Trading**: Real-time insider activity tracking and sentiment analysis
-- **💭 Social Media Research**: Reddit integration with AI-powered sentiment analysis
-- **📰 News Analysis**: AI-curated news with market impact assessment
 
 ## 🛠️ Installation & Setup
 
@@ -160,16 +160,31 @@ trading-mcp/
 └── README.md
 ```
 
-## 🔒 Rate Limiting & Usage
+## 🐛 Known Issues
 
-### API Rate Limits
-- **Finviz**: Be respectful with web scraping (built-in delays)
-- **Reddit API**: 60 requests per minute
-- **OpenAI API**: Varies by plan (track usage in OpenAI dashboard)
+- Finviz web scraping may occasionally fail due to rate limiting or site changes
+- Reddit API has rate limits that may affect high-volume usage
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+
+## 📊 Example Usage
+
+Once configured, you can use the tools through your MCP-enabled client:
+
+```
+# Screen for stocks with specific technical patterns
+Use the finviz_technical_screen tool to find stocks with "triangle_ascending" pattern
+
+# Get fundamental analysis
+Use get_fundamental_metrics for "AAPL" to see comprehensive financial data
+
+# Analyze social sentiment
+Use analyze_social_sentiment for "TSLA" to see Reddit discussion sentiment
+```
+
 
 ## ⚠️ Disclaimer
 

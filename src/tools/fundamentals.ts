@@ -202,125 +202,192 @@ function calculateValuationComparison(valuations: { [ticker: string]: Fundamenta
   return analysis;
 }
 
+/**
+ * Utility functions for health score calculations
+ */
+class HealthScoreCalculator {
+  private fundamentals: FundamentalMetrics;
+  private weights: any;
+
+  constructor(fundamentals: FundamentalMetrics, weights: any) {
+    this.fundamentals = fundamentals;
+    this.weights = weights;
+  }
+
+  /**
+   * Calculate profitability score based on profit margin and ROE
+   */
+  calculateProfitabilityScore(): { score: number; details: any } {
+    let score = 50; // neutral start
+    const details: any = {};
+
+    if (this.fundamentals.profitMargin) {
+      const margin = parseFloat(this.fundamentals.profitMargin.replace('%', ''));
+      if (!isNaN(margin)) {
+        score = Math.min(100, Math.max(0, 50 + margin * 2));
+        details.profit_margin = `${margin}%`;
+      }
+    }
+    
+    if (this.fundamentals.returnOnEquity) {
+      const roe = parseFloat(this.fundamentals.returnOnEquity.replace('%', ''));
+      if (!isNaN(roe)) {
+        const roeScore = Math.min(100, Math.max(0, 50 + roe * 3));
+        score = (score + roeScore) / 2;
+        details.return_on_equity = `${roe}%`;
+      }
+    }
+
+    return { score, details };
+  }
+
+  /**
+   * Calculate liquidity score based on current ratio
+   */
+  calculateLiquidityScore(): { score: number; details: any } {
+    let score = 50;
+    const details: any = {};
+
+    if (this.fundamentals.currentRatio) {
+      const ratio = parseFloat(this.fundamentals.currentRatio);
+      if (!isNaN(ratio)) {
+        if (ratio >= 1.5 && ratio <= 3) {
+          score = 90;
+        } else if (ratio >= 1 && ratio < 1.5) {
+          score = 70;
+        } else if (ratio > 3) {
+          score = 60;
+        } else {
+          score = 20;
+        }
+        details.current_ratio = ratio;
+      }
+    }
+
+    return { score, details };
+  }
+
+  /**
+   * Calculate leverage score based on debt-to-equity ratio
+   */
+  calculateLeverageScore(): { score: number; details: any } {
+    let score = 50;
+    const details: any = {};
+
+    if (this.fundamentals.debtToEquity) {
+      const debtToEquity = parseFloat(this.fundamentals.debtToEquity);
+      if (!isNaN(debtToEquity)) {
+        if (debtToEquity <= 0.3) {
+          score = 90;
+        } else if (debtToEquity <= 0.6) {
+          score = 70;
+        } else if (debtToEquity <= 1.0) {
+          score = 50;
+        } else {
+          score = Math.max(10, 50 - (debtToEquity - 1) * 20);
+        }
+        details.debt_to_equity = debtToEquity;
+      }
+    }
+
+    return { score, details };
+  }
+
+  /**
+   * Calculate efficiency score based on P/E ratio
+   */
+  calculateEfficiencyScore(): { score: number; details: any } {
+    let score = 50;
+    const details: any = {};
+
+    if (this.fundamentals.pe) {
+      const pe = parseFloat(this.fundamentals.pe);
+      if (!isNaN(pe) && pe > 0) {
+        if (pe >= 10 && pe <= 20) {
+          score = 80;
+        } else if (pe >= 5 && pe < 10) {
+          score = 70;
+        } else if (pe > 20 && pe <= 30) {
+          score = 60;
+        } else if (pe > 30) {
+          score = Math.max(20, 60 - (pe - 30));
+        } else {
+          score = 30;
+        }
+        details.price_to_earnings = pe;
+      }
+    }
+
+    return { score, details };
+  }
+
+  /**
+   * Calculate growth score based on EPS growth
+   */
+  calculateGrowthScore(): { score: number; details: any } {
+    let score = 50;
+    const details: any = {};
+
+    if (this.fundamentals.epsGrowth) {
+      const epsGrowth = parseFloat(this.fundamentals.epsGrowth.replace('%', ''));
+      if (!isNaN(epsGrowth)) {
+        score = Math.min(100, Math.max(0, 50 + epsGrowth));
+        details.eps_growth = `${epsGrowth}%`;
+      }
+    }
+
+    return { score, details };
+  }
+
+  /**
+   * Calculate overall health score
+   */
+  calculateOverallScore() {
+    const profitability = this.calculateProfitabilityScore();
+    const liquidity = this.calculateLiquidityScore();
+    const leverage = this.calculateLeverageScore();
+    const efficiency = this.calculateEfficiencyScore();
+    const growth = this.calculateGrowthScore();
+
+    const scores = {
+      profitability: profitability.score,
+      liquidity: liquidity.score,
+      leverage: leverage.score,
+      efficiency: efficiency.score,
+      growth: growth.score,
+    };
+
+    const details = {
+      ...profitability.details,
+      ...liquidity.details,
+      ...leverage.details,
+      ...efficiency.details,
+      ...growth.details,
+    };
+
+    const overallScore = Math.round(
+      scores.profitability * this.weights.profitability +
+      scores.liquidity * this.weights.liquidity +
+      scores.leverage * this.weights.leverage +
+      scores.efficiency * this.weights.efficiency +
+      scores.growth * this.weights.growth
+    );
+
+    return { overallScore, scores, details };
+  }
+}
+
 function calculateHealthScore(fundamentals: FundamentalMetrics, weights: any) {
-  const scores = {
-    profitability: 0,
-    liquidity: 0,
-    leverage: 0,
-    efficiency: 0,
-    growth: 0,
-  };
-  
-  const details: any = {};
-  
-  // Profitability Score (0-100)
-  let profitabilityScore = 50; // neutral start
-  if (fundamentals.profitMargin) {
-    const margin = parseFloat(fundamentals.profitMargin.replace('%', ''));
-    if (!isNaN(margin)) {
-      profitabilityScore = Math.min(100, Math.max(0, 50 + margin * 2));
-      details.profit_margin = `${margin}%`;
-    }
-  }
-  if (fundamentals.returnOnEquity) {
-    const roe = parseFloat(fundamentals.returnOnEquity.replace('%', ''));
-    if (!isNaN(roe)) {
-      const roeScore = Math.min(100, Math.max(0, 50 + roe * 3));
-      profitabilityScore = (profitabilityScore + roeScore) / 2;
-      details.return_on_equity = `${roe}%`;
-    }
-  }
-  scores.profitability = profitabilityScore;
-  
-  // Liquidity Score (0-100)
-  let liquidityScore = 50;
-  if (fundamentals.currentRatio) {
-    const ratio = parseFloat(fundamentals.currentRatio);
-    if (!isNaN(ratio)) {
-      // Ideal current ratio is around 1.5-3
-      if (ratio >= 1.5 && ratio <= 3) {
-        liquidityScore = 90;
-      } else if (ratio >= 1 && ratio < 1.5) {
-        liquidityScore = 70;
-      } else if (ratio > 3) {
-        liquidityScore = 60; // Too much cash might indicate poor capital allocation
-      } else {
-        liquidityScore = 20; // Below 1 is concerning
-      }
-      details.current_ratio = ratio;
-    }
-  }
-  scores.liquidity = liquidityScore;
-  
-  // Leverage Score (0-100)
-  let leverageScore = 50;
-  if (fundamentals.debtToEquity) {
-    const debtToEquity = parseFloat(fundamentals.debtToEquity);
-    if (!isNaN(debtToEquity)) {
-      // Lower debt-to-equity is generally better
-      if (debtToEquity <= 0.3) {
-        leverageScore = 90;
-      } else if (debtToEquity <= 0.6) {
-        leverageScore = 70;
-      } else if (debtToEquity <= 1.0) {
-        leverageScore = 50;
-      } else {
-        leverageScore = Math.max(10, 50 - (debtToEquity - 1) * 20);
-      }
-      details.debt_to_equity = debtToEquity;
-    }
-  }
-  scores.leverage = leverageScore;
-  
-  // Efficiency Score (P/E based)
-  let efficiencyScore = 50;
-  if (fundamentals.pe) {
-    const pe = parseFloat(fundamentals.pe);
-    if (!isNaN(pe) && pe > 0) {
-      // Reasonable P/E ratios (varies by sector, but generally 15-25 is good)
-      if (pe >= 10 && pe <= 20) {
-        efficiencyScore = 80;
-      } else if (pe >= 5 && pe < 10) {
-        efficiencyScore = 70;
-      } else if (pe > 20 && pe <= 30) {
-        efficiencyScore = 60;
-      } else if (pe > 30) {
-        efficiencyScore = Math.max(20, 60 - (pe - 30));
-      } else {
-        efficiencyScore = 30; // Very low P/E might indicate problems
-      }
-      details.price_to_earnings = pe;
-    }
-  }
-  scores.efficiency = efficiencyScore;
-  
-  // Growth Score
-  let growthScore = 50;
-  if (fundamentals.epsGrowth) {
-    const epsGrowth = parseFloat(fundamentals.epsGrowth.replace('%', ''));
-    if (!isNaN(epsGrowth)) {
-      growthScore = Math.min(100, Math.max(0, 50 + epsGrowth));
-      details.eps_growth = `${epsGrowth}%`;
-    }
-  }
-  scores.growth = growthScore;
-  
-  // Calculate weighted overall score
-  const overallScore = Math.round(
-    scores.profitability * weights.profitability +
-    scores.liquidity * weights.liquidity +
-    scores.leverage * weights.leverage +
-    scores.efficiency * weights.efficiency +
-    scores.growth * weights.growth
-  );
-  
+  const calculator = new HealthScoreCalculator(fundamentals, weights);
+  const { overallScore, scores, details } = calculator.calculateOverallScore();
+
   // Determine rating
   let rating = 'Poor';
   if (overallScore >= 80) rating = 'Excellent';
   else if (overallScore >= 70) rating = 'Good';
   else if (overallScore >= 60) rating = 'Fair';
   else if (overallScore >= 40) rating = 'Below Average';
-  
+
   return {
     overall_score: overallScore,
     rating,

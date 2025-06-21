@@ -278,57 +278,48 @@ export class OpenAIAdapter {
   }
 
   private parseImpactAnalysis(content: string): any {
-    try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
-      }
-    } catch (error) {
-      console.warn('Failed to parse impact analysis JSON');
-    }
-
-    return {
+    return this.parseJSONResponse(content, {
       overallImpact: 'neutral',
       impactScore: 5,
       keyInsights: ['Analysis unavailable'],
       riskFactors: ['Standard market risks'],
-    };
+    });
   }
 
   private parseMarketContext(content: string): any {
-    try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
-      }
-    } catch (error) {
-      console.warn('Failed to parse market context JSON');
-    }
-
-    return {
+    return this.parseJSONResponse(content, {
       sectorTrends: ['General market trends'],
       marketSentiment: 'Mixed market conditions',
       competitorAnalysis: ['Competitive landscape analysis unavailable'],
       macroFactors: ['Standard macroeconomic factors'],
-    };
+    });
   }
 
   private parseSentimentAnalysis(content: string): any {
+    return this.parseJSONResponse(content, {
+      overallSentiment: 'neutral',
+      sentimentScore: 0,
+      keyThemes: ['General discussion'],
+      confidenceLevel: 'low',
+    });
+  }
+
+  /**
+   * Generic JSON parsing utility with fallback handling
+   * @param content - Raw content from AI response
+   * @param fallback - Default values to return if parsing fails
+   * @returns Parsed JSON object or fallback values
+   */
+  private parseJSONResponse<T>(content: string, fallback: T): T {
     try {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         return JSON.parse(jsonMatch[0]);
       }
     } catch (error) {
-      console.warn('Failed to parse sentiment analysis JSON');
+      console.warn('Failed to parse JSON response');
     }
-
-    return {
-      overallSentiment: 'neutral',
-      sentimentScore: 0,
-      keyThemes: ['General discussion'],
-      confidenceLevel: 'low',
-    };
+    return fallback;
   }
 
   private calculateOverallSentiment(articles: NewsArticle[]): 'positive' | 'negative' | 'neutral' {

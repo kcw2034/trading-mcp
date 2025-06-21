@@ -468,6 +468,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 // Start the server
+/**
+ * Main function to start the Trading MCP Server
+ * Initializes the server with stdio transport and connects to the MCP protocol
+ */
 async function main() {
   const transport = new StdioServerTransport();
   

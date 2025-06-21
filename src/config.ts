@@ -2,9 +2,18 @@ import { z } from 'zod';
 import { Config } from './types/index.js';
 import dotenv from 'dotenv';
 
+/**
+ * Configuration module for Trading MCP Server
+ * Handles environment variable loading and validation
+ */
+
 // Load environment variables
 dotenv.config();
 
+/**
+ * Zod schema for configuration validation
+ * Ensures all configuration values are properly typed and optional where appropriate
+ */
 const ConfigSchema = z.object({
   openaiApiKey: z.string().optional(),
   reddit: z.object({
@@ -15,6 +24,10 @@ const ConfigSchema = z.object({
   }).optional(),
 });
 
+/**
+ * Main configuration object
+ * Parses and validates environment variables
+ */
 export const config: Config = ConfigSchema.parse({
   openaiApiKey: process.env.OPENAI_API_KEY,
   reddit: {
@@ -25,7 +38,10 @@ export const config: Config = ConfigSchema.parse({
   },
 });
 
-// Helper function to check if Reddit API is configured
+/**
+ * Helper function to check if Reddit API is configured
+ * @returns {boolean} True if all required Reddit credentials are available
+ */
 export const isRedditConfigured = (): boolean => {
   return !!(
     config.reddit?.clientId &&
@@ -35,7 +51,10 @@ export const isRedditConfigured = (): boolean => {
   );
 };
 
-// Helper function to check if OpenAI API is configured
+/**
+ * Helper function to check if OpenAI API is configured
+ * @returns {boolean} True if OpenAI API key is available
+ */
 export const isOpenAIConfigured = (): boolean => {
   return !!config.openaiApiKey;
 }; 

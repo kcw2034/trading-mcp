@@ -18,10 +18,17 @@ export class FinvizAdapter {
     };
   }
 
+  /**
+   * Screen stocks based on technical patterns and filters
+   * @param pattern - Technical pattern to screen for (e.g., 'channel_down', 'triangle_ascending')
+   * @param marketCap - Market cap filter ('nano', 'micro', 'small', 'mid', 'large', 'mega')
+   * @param geo - Geographic filter ('usa', 'foreign')
+   * @returns Promise<ScreeningResult[]> - Array of stocks matching the criteria
+   */
   async screenStocks(pattern: string, marketCap: string, geo = 'usa'): Promise<ScreeningResult[]> {
     try {
       const url = this.buildScreenerUrl(pattern, marketCap, geo);
-      console.log(`Fetching screener data from: ${url}`);
+      console.debug(`Fetching screener data from: ${url}`);
       
       const response = await axios.get(url, {
         headers: this.getHeaders(),
@@ -35,10 +42,15 @@ export class FinvizAdapter {
     }
   }
 
+  /**
+   * Get fundamental metrics for a specific stock ticker
+   * @param ticker - Stock ticker symbol (e.g., 'AAPL', 'MSFT')
+   * @returns Promise<FundamentalMetrics> - Comprehensive fundamental data
+   */
   async getFundamentals(ticker: string): Promise<FundamentalMetrics> {
     try {
       const url = `${this.quoteUrl}?t=${ticker.toUpperCase()}`;
-      console.log(`Fetching fundamentals for ${ticker} from: ${url}`);
+      console.debug(`Fetching fundamentals for ${ticker} from: ${url}`);
       
       const response = await axios.get(url, {
         headers: this.getHeaders(),
@@ -52,10 +64,15 @@ export class FinvizAdapter {
     }
   }
 
+  /**
+   * Get insider trading activity for a specific stock
+   * @param ticker - Stock ticker symbol
+   * @returns Promise<InsiderActivity> - Recent insider transactions and summary
+   */
   async getInsiderActivity(ticker: string): Promise<InsiderActivity> {
     try {
       const url = `${this.quoteUrl}?t=${ticker.toUpperCase()}`;
-      console.log(`Fetching insider activity for ${ticker} from: ${url}`);
+      console.debug(`Fetching insider activity for ${ticker} from: ${url}`);
       
       const response = await axios.get(url, {
         headers: this.getHeaders(),
@@ -210,6 +227,11 @@ export class FinvizAdapter {
     return transactions;
   }
 
+  /**
+   * Apply advanced filters for custom stock screening
+   * @param filters - Custom filter parameters as key-value pairs
+   * @returns Promise<ScreeningResult[]> - Stocks matching the advanced criteria
+   */
   async advancedFilter(filters: { [key: string]: string }): Promise<ScreeningResult[]> {
     try {
       const params = new URLSearchParams({
@@ -218,7 +240,7 @@ export class FinvizAdapter {
       });
       
       const url = `${this.screenerUrl}?${params}`;
-      console.log(`Fetching advanced filter results from: ${url}`);
+      console.debug(`Fetching advanced filter results from: ${url}`);
       
       const response = await axios.get(url, {
         headers: this.getHeaders(),

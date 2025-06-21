@@ -119,7 +119,7 @@ export class RedditAdapter {
       this.accessToken = response.data.access_token;
       this.tokenExpiry = new Date(Date.now() + (response.data.expires_in * 1000));
       
-      console.log('Successfully authenticated with Reddit API');
+      console.debug('Successfully authenticated with Reddit API');
     } catch (error) {
       console.error('Reddit authentication failed:', error);
       throw new Error('Failed to authenticate with Reddit API');

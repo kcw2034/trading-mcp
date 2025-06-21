@@ -32,17 +32,32 @@ const SocialSentimentSchema = z.object({
   max_posts: z.number().default(50),
 });
 
+/**
+ * Utility function to create configuration error response
+ * @param configType - Type of configuration that's missing
+ * @returns Standard error response object
+ */
+function createConfigErrorResponse(configType: 'reddit' | 'openai' | 'social-sentiment') {
+  const messages = {
+    reddit: 'Reddit API credentials are not configured. Please set REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USERNAME, and REDDIT_PASSWORD environment variables.',
+    openai: 'OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable.',
+    'social-sentiment': 'Both Reddit and OpenAI API credentials are required for social sentiment analysis. Please configure both services.',
+  };
+
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: messages[configType],
+      },
+    ],
+    isError: true,
+  };
+}
+
 export async function searchRedditPosts(args: unknown) {
   if (!isRedditConfigured()) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: 'Reddit API credentials are not configured. Please set REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USERNAME, and REDDIT_PASSWORD environment variables.',
-        },
-      ],
-      isError: true,
-    };
+    return createConfigErrorResponse('reddit');
   }
 
   try {
@@ -84,15 +99,7 @@ export async function searchRedditPosts(args: unknown) {
 
 export async function getRedditComments(args: unknown) {
   if (!isRedditConfigured()) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: 'Reddit API credentials are not configured. Please set REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USERNAME, and REDDIT_PASSWORD environment variables.',
-        },
-      ],
-      isError: true,
-    };
+    return createConfigErrorResponse('reddit');
   }
 
   try {
@@ -130,15 +137,7 @@ export async function getRedditComments(args: unknown) {
 
 export async function getTrendingTickers(args: unknown) {
   if (!isRedditConfigured()) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: 'Reddit API credentials are not configured. Please set REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USERNAME, and REDDIT_PASSWORD environment variables.',
-        },
-      ],
-      isError: true,
-    };
+    return createConfigErrorResponse('reddit');
   }
 
   try {
@@ -180,17 +179,8 @@ export async function getTrendingTickers(args: unknown) {
 }
 
 export async function analyzeSocialSentiment(args: unknown) {
-  const configStatus = checkSocialSentimentConfig();
-  if (configStatus) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: configStatus,
-        },
-      ],
-      isError: true,
-    };
+  if (!isRedditConfigured() || !isOpenAIConfigured()) {
+    return createConfigErrorResponse('social-sentiment');
   }
 
   try {
@@ -253,18 +243,6 @@ export async function analyzeSocialSentiment(args: unknown) {
       isError: true,
     };
   }
-}
-
-function checkSocialSentimentConfig(): string | null {
-  if (!isRedditConfigured()) {
-    return 'Reddit API credentials are not configured. Please set REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USERNAME, and REDDIT_PASSWORD environment variables.';
-  }
-  
-  if (!isOpenAIConfigured()) {
-    return 'OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable for sentiment analysis.';
-  }
-  
-  return null;
 }
 
 // Helper function to extract ticker symbols from text

@@ -22,17 +22,24 @@ const MarketContextSchema = z.object({
   sector: z.string().optional(),
 });
 
+/**
+ * Utility function to create OpenAI configuration error response
+ */
+function createOpenAIConfigErrorResponse() {
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: 'OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable.',
+      },
+    ],
+    isError: true,
+  };
+}
+
 export async function getLatestNews(args: unknown) {
   if (!isOpenAIConfigured()) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: 'OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable.',
-        },
-      ],
-      isError: true,
-    };
+    return createOpenAIConfigErrorResponse();
   }
 
   try {
@@ -73,15 +80,7 @@ export async function getLatestNews(args: unknown) {
 
 export async function analyzeNewsImpact(args: unknown) {
   if (!isOpenAIConfigured()) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: 'OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable.',
-        },
-      ],
-      isError: true,
-    };
+    return createOpenAIConfigErrorResponse();
   }
 
   try {
@@ -134,15 +133,7 @@ export async function analyzeNewsImpact(args: unknown) {
 
 export async function getMarketContext(args: unknown) {
   if (!isOpenAIConfigured()) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: 'OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable.',
-        },
-      ],
-      isError: true,
-    };
+    return createOpenAIConfigErrorResponse();
   }
 
   try {
