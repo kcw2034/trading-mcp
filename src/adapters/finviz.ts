@@ -228,16 +228,21 @@ export class FinvizAdapter {
   }
 
   /**
-   * Apply advanced filters for custom stock screening
+   * Apply advanced filters for custom stock screening with optional signal
    * @param filters - Custom filter parameters as key-value pairs
+   * @param signal - Optional signal parameter (e.g., 'ta_p_channeldown')
    * @returns Promise<ScreeningResult[]> - Stocks matching the advanced criteria
    */
-  async advancedFilter(filters: { [key: string]: string }): Promise<ScreeningResult[]> {
+  async advancedFilter(filters: { [key: string]: string }, signal?: string): Promise<ScreeningResult[]> {
     try {
       const params = new URLSearchParams({
         v: '111',
         ...filters,
       });
+      
+      if (signal) {
+        params.set('s', signal);
+      }
       
       const url = `${this.screenerUrl}?${params}`;
       console.debug(`Fetching advanced filter results from: ${url}`);
