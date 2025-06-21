@@ -13,6 +13,7 @@ import { getFundamentalMetrics, analyzeValuationMetrics, calculateFinancialHealt
 import { getInsiderActivity, analyzeInsiderSentiment } from './tools/insider.js';
 import { searchRedditPosts, getRedditComments, getTrendingTickers, analyzeSocialSentiment } from './tools/social.js';
 import { getLatestNews, analyzeNewsImpact, getMarketContext } from './tools/news.js';
+import { getPutCallRatio } from './tools/options.js';
 import { isRedditConfigured, isOpenAIConfigured } from './config.js';
 
 const server = new Server(
@@ -28,7 +29,7 @@ const server = new Server(
 );
 
 const tools: Tool[] = [
-gss  {
+  {
     name: 'screen_stocks_advanced_filters',
     description: 'Comprehensive stock screening using Finviz filters that supports technical patterns, fundamental criteria, and multi-parameter filtering. Use this when you need to find stocks matching specific investment criteria like channel down patterns, profitable companies, or large-cap stocks. The tool returns a ranked list of stocks with key metrics including market cap, P/E ratios, and current prices. Supports complex filter combinations for advanced screening strategies using Finviz format parameters.',
     inputSchema: {
@@ -157,6 +158,21 @@ gss  {
           type: 'number',
           description: 'Minimum transaction value to include in analysis',
           default: 10000,
+        },
+      },
+      required: ['ticker'],
+    },
+  },
+
+  {
+    name: 'get_put_call_ratio',
+    description: 'Options market analysis tool that retrieves put/call ratio data from Barchart to assess market sentiment and options flow. Use this when analyzing options market sentiment, detecting potential market reversals, or understanding institutional hedging activity. The tool returns comprehensive put/call ratios for different expiration dates, volume and open interest data, and AI-powered sentiment analysis. Higher put/call ratios typically indicate bearish sentiment, while lower ratios suggest bullish sentiment. Essential for options traders and investors looking to gauge market sentiment.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        ticker: {
+          type: 'string',
+          description: 'Stock ticker symbol',
         },
       },
       required: ['ticker'],
@@ -373,6 +389,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return await getInsiderActivity(args);
       case 'analyze_insider_sentiment':
         return await analyzeInsiderSentiment(args);
+
+      case 'get_put_call_ratio':
+        return await getPutCallRatio(args);
 
       case 'search_reddit_stock_discussions':
         return await searchRedditPosts(args);

@@ -143,3 +143,32 @@ export interface Config {
     password?: string;
   };
 }
+
+export interface PutCallRatioData {
+  expirationDate: string;
+  putVolume: number;
+  callVolume: number;
+  putCallVolumeRatio: number;
+  putOpenInterest: number;
+  callOpenInterest: number;
+  putCallOIRatio: number;
+  totalVolume: number;
+  totalOpenInterest: number;
+}
+
+export interface PutCallRatioAnalysis {
+  ticker: string;
+  currentPrice?: string;
+  overallPutCallVolumeRatio: number;
+  overallPutCallOIRatio: number;
+  totalPutVolume: number;
+  totalCallVolume: number;
+  totalPutOI: number;
+  totalCallOI: number;
+  ratiosByDate: PutCallRatioData[];
+  analysis: {
+    sentiment: 'bullish' | 'bearish' | 'neutral';
+    interpretation: string;
+    keyInsights: string[];
+  };
+}

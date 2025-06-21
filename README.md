@@ -29,7 +29,8 @@ Add this to your MCP configuration file (typically `~/.cursor/mcp.json` or your 
 - **📊 Stock Screening**: Technical pattern recognition and advanced multi-criteria filtering
 - **📈 Fundamental Analysis**: Comprehensive metrics, valuation comparison, and AI health scoring
 - **🏢 Insider Trading**: Real-time insider activity tracking and sentiment analysis
-- **💭 Social Media Research**: Reddit integration with AI-powered sentiment analysis
+- **📊 Options Analysis**: Put/call ratio data and options market sentiment analysis
+- **💭 Social Media Research**: Reddit integration with AI-powered sentiment analysisgit
 - **📰 News Analysis**: AI-curated news with market impact assessment
 
 ## 📚 Available Tools
@@ -61,6 +62,11 @@ Track recent insider trading transactions by executives, directors, and large sh
 
 #### `analyze_insider_sentiment`
 Analyze insider trading patterns to determine overall sentiment (bullish, bearish, neutral) based on recent transaction history and patterns.
+
+### Options Analysis Tools
+
+#### `get_put_call_ratio`
+Retrieve put/call ratio data from Barchart to assess market sentiment and options flow. Returns comprehensive put/call ratios for different expiration dates, volume and open interest data, and AI-powered sentiment analysis. Higher put/call ratios typically indicate bearish sentiment, while lower ratios suggest bullish sentiment.
 
 ### Social Media Research Tools
 *Requires Reddit API configuration*
@@ -143,12 +149,14 @@ trading-mcp/
 │   │   └── index.ts
 │   ├── adapters/          # External API adapters
 │   │   ├── finviz.ts      # Finviz web scraping
+│   │   ├── barchart.ts    # Barchart options data scraping
 │   │   ├── reddit.ts      # Reddit API integration
 │   │   └── openai.ts      # OpenAI API integration
 │   └── tools/             # Tool implementations
 │       ├── screening.ts   # Stock screening tools
 │       ├── fundamentals.ts # Fundamental analysis
 │       ├── insider.ts     # Insider trading analysis
+│       ├── options.ts     # Options analysis tools
 │       ├── social.ts      # Social media research
 │       └── news.ts        # News analysis
 ├── dist/                  # Compiled JavaScript
@@ -177,6 +185,9 @@ Use the finviz_technical_screen tool to find stocks with "triangle_ascending" pa
 
 # Get fundamental analysis
 Use get_fundamental_metrics for "AAPL" to see comprehensive financial data
+
+# Analyze options sentiment
+Use get_put_call_ratio for "NUE" to see put/call ratios and market sentiment
 
 # Analyze social sentiment
 Use analyze_social_sentiment for "TSLA" to see Reddit discussion sentiment
