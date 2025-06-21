@@ -2,6 +2,32 @@
 
 A comprehensive Model Context Protocol (MCP) server for stock analysis and trading insights. This server provides advanced stock screening, fundamental analysis, insider trading data, social media sentiment, and news analysis capabilities.
 
+## 📋 MCP Configuration
+
+Add this to your MCP configuration file (typically `~/.cursor/mcp.json` or your IDE's MCP settings):
+
+```json
+{
+  "mcpServers": {
+    "trading-mcp": {
+      "command": "node",
+      "args": ["/path/to/trading-mcp/dist/server.js"],
+      "env": {
+        "OPENAI_API_KEY": "sk-your-openai-api-key-here",
+        "REDDIT_CLIENT_ID": "your-reddit-client-id",
+        "REDDIT_CLIENT_SECRET": "your-reddit-client-secret",
+        "REDDIT_USERNAME": "your-reddit-username",
+        "REDDIT_PASSWORD": "your-reddit-password"
+      }
+    }
+  }
+}
+```
+
+**Note:** 
+- OpenAI API key is required for news analysis and social sentiment analysis
+- Reddit credentials are optional but enable social media research features
+
 ## 🚀 Features
 
 ### 📊 Stock Screening
@@ -44,33 +70,13 @@ cd trading-mcp
 npm install
 ```
 
-2. **Configure environment variables:**
-```bash
-cp env.example .env
-```
-
-Edit `.env` with your API credentials:
-
-```env
-# OpenAI API Configuration (Required for news analysis)
-OPENAI_API_KEY=sk-your-openai-api-key-here
-
-# Reddit API Configuration (Optional, for social media features)
-REDDIT_CLIENT_ID=your-reddit-client-id
-REDDIT_CLIENT_SECRET=your-reddit-client-secret
-REDDIT_USERNAME=your-reddit-username
-REDDIT_PASSWORD=your-reddit-password
-```
-
-3. **Build the project:**
+2. **Build the project:**
 ```bash
 npm run build
 ```
 
-4. **Start the server:**
-```bash
-npm start
-```
+3. **Configure in your MCP client:**
+Add the MCP configuration shown above to your MCP client settings with your API credentials.
 
 ## 🔧 Configuration
 
@@ -85,14 +91,14 @@ npm start
 1. Visit [OpenAI API](https://platform.openai.com/api-keys)
 2. Create an account or sign in
 3. Generate a new API key
-4. Add to your `.env` file as `OPENAI_API_KEY`
+4. Add to your MCP configuration as `OPENAI_API_KEY`
 
 #### Reddit API Credentials
 1. Visit [Reddit App Preferences](https://www.reddit.com/prefs/apps)
 2. Click "Create App" or "Create Another App"
 3. Choose "script" as the app type
 4. Note your `client_id` and `client_secret`
-5. Add your Reddit username and password to `.env`
+5. Add your Reddit credentials to your MCP configuration
 
 ## 📚 Available Tools
 
@@ -306,42 +312,6 @@ trading-mcp/
 - **Finviz**: Be respectful with web scraping (built-in delays)
 - **Reddit API**: 60 requests per minute
 - **OpenAI API**: Varies by plan (track usage in OpenAI dashboard)
-
-### Best Practices
-- Use appropriate limits to avoid hitting rate limits
-- Cache results when possible for frequently requested data
-- Monitor API usage and costs, especially for OpenAI
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-#### "Reddit API credentials not configured"
-- Ensure all Reddit environment variables are set in `.env`
-- Verify your Reddit app credentials are correct
-- Check that your Reddit app type is set to "script"
-
-#### "OpenAI API key not configured"
-- Verify `OPENAI_API_KEY` is set in `.env`
-- Ensure your OpenAI account has API access and credits
-
-#### "Failed to screen stocks"
-- Finviz may be temporarily blocking requests
-- Try different patterns or reduce request frequency
-- Check your internet connection
-
-#### TypeScript compilation errors
-- Run `npm run clean && npm run build`
-- Ensure all dependencies are installed: `npm install`
-- Check Node.js version: `node --version` (requires 18.0.0+)
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/new-feature`
-3. Commit changes: `git commit -am 'Add new feature'`
-4. Push to branch: `git push origin feature/new-feature`
-5. Submit a pull request
 
 ## 📄 License
 
