@@ -1,5 +1,7 @@
 ---
-description: 
+description: >
+  A rule for defining tools in the MCP server is clearly and effectively defined. Ensures each tool includes a well-structured title and description that communicates its purpose, functionality, ideal usage scenarios, and expected output. 
+  This improves tool discoverability, relevance ranking, and clarity for AI agents.
 globs: 
 alwaysApply: false
 ---
