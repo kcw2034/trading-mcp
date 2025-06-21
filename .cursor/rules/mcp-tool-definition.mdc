@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
 ## MCP Tool Definitions
 
 When adding or editing an MCP Server's tool, follow this structure to make it clear when and how the tool should be used:
