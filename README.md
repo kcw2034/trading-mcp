@@ -28,38 +28,73 @@ Add this to your MCP configuration file (typically `~/.cursor/mcp.json` or your 
 - OpenAI API key is required for news analysis and social sentiment analysis
 - Reddit credentials are optional but enable social media research features
 
+## 📚 Available Tools
+
+### Stock Screening Tools
+
+#### `finviz_technical_screen`
+Screen stocks using Finviz technical chart patterns. Find stocks matching specific patterns like channel down, triangle ascending, support levels, etc. Filter by market cap and geography.
+
+#### `advanced_stock_filter`
+Apply advanced multi-criteria stock screening with custom filter combinations. Use complex Finviz parameters to find stocks matching specific fundamental and technical criteria.
+
+### Fundamental Analysis Tools
+
+#### `get_fundamental_metrics`
+Retrieve comprehensive fundamental data for any stock including P/E ratios, PEG, ROE, debt ratios, growth metrics, profitability margins, and more.
+
+#### `analyze_valuation_metrics`
+Compare valuation metrics across multiple stocks to identify relative value opportunities. Perfect for peer analysis and sector comparisons.
+
+#### `financial_health_score`
+Calculate an AI-powered comprehensive financial health score based on profitability, liquidity, leverage, efficiency, and growth metrics with customizable weightings.
+
+### Insider Trading Tools
+
+#### `get_insider_activity`
+Track recent insider trading transactions by executives, directors, and large shareholders. Monitor buying and selling activity with transaction details.
+
+#### `analyze_insider_sentiment`
+Analyze insider trading patterns to determine overall sentiment (bullish, bearish, neutral) based on recent transaction history and patterns.
+
+### Social Media Research Tools
+*Requires Reddit API configuration*
+
+#### `search_reddit_posts`
+Search Reddit for posts mentioning specific stock tickers across multiple investing subreddits with time-based filtering and sorting options.
+
+#### `get_reddit_comments`
+Retrieve detailed comments from specific Reddit posts for in-depth sentiment analysis and community discussion insights.
+
+#### `get_trending_tickers`
+Identify stocks gaining social media momentum by analyzing mention frequency across Reddit investing communities.
+
+#### `analyze_social_sentiment`
+*Requires both Reddit and OpenAI APIs*
+
+AI-powered analysis of social media sentiment combining Reddit data with advanced sentiment classification and confidence scoring.
+
+### News Analysis Tools
+*Requires OpenAI API configuration*
+
+#### `get_latest_news`
+Get and analyze recent news articles about stocks using AI-powered summarization and sentiment analysis with relevance scoring.
+
+#### `analyze_news_impact`
+Assess the potential market impact of specific news headlines or events using AI analysis to predict stock price effects.
+
+#### `market_context_analysis`
+Provide broader market and sector context analysis to understand how individual stocks fit into current market conditions.
+
 ## 🚀 Features
 
-### 📊 Stock Screening
-- **Technical Pattern Screening**: Find stocks matching specific chart patterns using Finviz
-- **Advanced Filtering**: Custom multi-criteria stock screening with complex filter combinations
-- **Market Cap Filtering**: Filter by company size (nano, micro, small, mid, large, mega)
-
-### 📈 Fundamental Analysis
-- **Comprehensive Metrics**: P/E ratios, PEG, ROE, debt ratios, growth metrics, and more
-- **Valuation Comparison**: Compare multiple stocks across key valuation metrics
-- **Financial Health Score**: AI-powered composite scoring of financial health
-
-### 🏢 Insider Trading Analysis
-- **Insider Activity Tracking**: Monitor recent insider transactions by executives and directors
-- **Sentiment Analysis**: Determine bullish/bearish insider sentiment from transaction patterns
-- **Executive-Level Insights**: Focus on CEO, CFO, and board member activities
-
-### 💭 Social Media Research
-- **Reddit Integration**: Search across multiple investing subreddits
-- **Trending Tickers**: Identify stocks gaining social media momentum
-- **Sentiment Analysis**: AI-powered analysis of retail investor sentiment
-
-### 📰 News Analysis
-- **Latest News**: AI-curated and summarized recent news articles
-- **Impact Assessment**: Analyze potential market impact of news events
-- **Market Context**: Broader sector and market analysis
+- **📊 Stock Screening**: Technical pattern recognition and advanced multi-criteria filtering
+- **📈 Fundamental Analysis**: Comprehensive metrics, valuation comparison, and AI health scoring
+- **🏢 Insider Trading**: Real-time insider activity tracking and sentiment analysis
+- **💭 Social Media Research**: Reddit integration with AI-powered sentiment analysis
+- **📰 News Analysis**: AI-curated news with market impact assessment
 
 ## 🛠️ Installation & Setup
-
-### Prerequisites
-- Node.js 18.0.0 or higher
-- npm or yarn package manager
 
 ### Installation
 
@@ -99,187 +134,6 @@ Add the MCP configuration shown above to your MCP client settings with your API 
 3. Choose "script" as the app type
 4. Note your `client_id` and `client_secret`
 5. Add your Reddit credentials to your MCP configuration
-
-## 📚 Available Tools
-
-### Stock Screening Tools
-
-#### `finviz_technical_screen`
-Screen stocks using technical chart patterns.
-
-**Parameters:**
-- `pattern` (string): Technical pattern (e.g., "channel_down", "triangle_ascending")
-- `market_cap` (string): Market cap filter ("nano", "micro", "small", "mid", "large", "mega")
-- `geo` (string): Geographic filter ("usa", "foreign")
-- `limit` (number): Maximum results to return
-
-#### `advanced_stock_filter`
-Apply advanced multi-criteria screening.
-
-**Parameters:**
-- `filters` (object): Advanced filter parameters
-- `limit` (number): Maximum results to return
-
-### Fundamental Analysis Tools
-
-#### `get_fundamental_metrics`
-Retrieve comprehensive fundamental data for a stock.
-
-**Parameters:**
-- `ticker` (string): Stock ticker symbol
-- `metrics` (array): Specific metrics to retrieve (optional)
-
-#### `analyze_valuation_metrics`
-Compare valuation metrics across multiple stocks.
-
-**Parameters:**
-- `tickers` (array): Stock ticker symbols to compare
-- `metrics` (array): Valuation metrics to compare
-
-#### `financial_health_score`
-Calculate a comprehensive financial health score.
-
-**Parameters:**
-- `ticker` (string): Stock ticker symbol
-- `weights` (object): Custom weights for health factors
-
-### Insider Trading Tools
-
-#### `get_insider_activity`
-Retrieve recent insider trading transactions.
-
-**Parameters:**
-- `ticker` (string): Stock ticker symbol
-- `limit` (number): Maximum transactions to return
-- `transaction_types` (array): Filter by transaction types
-
-#### `analyze_insider_sentiment`
-Analyze insider trading patterns for sentiment.
-
-**Parameters:**
-- `ticker` (string): Stock ticker symbol
-- `analysis_period` (number): Analysis period in days
-- `min_transaction_value` (number): Minimum transaction value
-
-### Social Media Research Tools
-*Requires Reddit API configuration*
-
-#### `search_reddit_posts`
-Search Reddit for posts mentioning a stock.
-
-**Parameters:**
-- `ticker` (string): Stock ticker symbol
-- `subreddits` (array): Subreddits to search
-- `time_filter` (string): Time period ("hour", "day", "week", "month", "year")
-- `limit` (number): Maximum posts to return
-- `sort` (string): Sort order ("relevance", "hot", "top", "new")
-
-#### `get_trending_tickers`
-Find trending stock tickers on Reddit.
-
-**Parameters:**
-- `subreddits` (array): Subreddits to analyze
-- `limit` (number): Maximum trending tickers to return
-
-#### `analyze_social_sentiment`
-*Requires both Reddit and OpenAI APIs*
-
-Analyze social media sentiment using AI.
-
-**Parameters:**
-- `ticker` (string): Stock ticker symbol
-- `subreddits` (array): Subreddits to analyze
-- `time_filter` (string): Time period to analyze
-- `max_posts` (number): Maximum posts to analyze
-
-### News Analysis Tools
-*Requires OpenAI API configuration*
-
-#### `get_latest_news`
-Get and analyze latest news articles about a stock.
-
-**Parameters:**
-- `ticker` (string): Stock ticker symbol
-- `days_back` (number): Days to look back for news
-- `max_articles` (number): Maximum articles to analyze
-- `include_sentiment` (boolean): Include sentiment analysis
-
-#### `analyze_news_impact`
-Analyze potential market impact of news items.
-
-**Parameters:**
-- `ticker` (string): Stock ticker symbol
-- `news_items` (array): News headlines or summaries to analyze
-
-#### `market_context_analysis`
-Provide broader market and sector context.
-
-**Parameters:**
-- `ticker` (string): Stock ticker symbol
-- `sector` (string): Stock sector (optional)
-
-## 🔍 Usage Examples
-
-### Basic Stock Screening
-```json
-{
-  "tool": "finviz_technical_screen",
-  "parameters": {
-    "pattern": "channel_down",
-    "market_cap": "large",
-    "limit": 10
-  }
-}
-```
-
-### Fundamental Analysis
-```json
-{
-  "tool": "get_fundamental_metrics",
-  "parameters": {
-    "ticker": "AAPL",
-    "metrics": ["pe", "peg", "currentRatio", "profitMargin"]
-  }
-}
-```
-
-### Insider Trading Analysis
-```json
-{
-  "tool": "analyze_insider_sentiment",
-  "parameters": {
-    "ticker": "TSLA",
-    "analysis_period": 90,
-    "min_transaction_value": 50000
-  }
-}
-```
-
-### Social Media Research
-```json
-{
-  "tool": "search_reddit_posts",
-  "parameters": {
-    "ticker": "NVDA",
-    "subreddits": ["stocks", "wallstreetbets"],
-    "time_filter": "week",
-    "limit": 25
-  }
-}
-```
-
-### News Analysis
-```json
-{
-  "tool": "get_latest_news",
-  "parameters": {
-    "ticker": "MSFT",
-    "days_back": 7,
-    "max_articles": 10,
-    "include_sentiment": true
-  }
-}
-```
 
 ## 🏗️ Architecture
 
@@ -322,13 +176,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 This software is for educational and research purposes only. It is not intended as financial advice. Always do your own research and consider consulting with a qualified financial advisor before making investment decisions.
 
 The data provided by this server comes from third-party sources and may not always be accurate or up-to-date. Users should verify information independently before making any trading decisions.
-
-## 🔗 Links
-
-- [Model Context Protocol](https://modelcontextprotocol.io/)
-- [Finviz](https://finviz.com/)
-- [Reddit API](https://www.reddit.com/dev/api/)
-- [OpenAI API](https://platform.openai.com/docs/)
 
 ---
 
