@@ -3,33 +3,23 @@ import { RedditAdapter } from '../adapters/reddit.js';
 import { OpenAIAdapter } from '../adapters/openai.js';
 import { isRedditConfigured, isOpenAIConfigured } from '../config.js';
 
-// Schema for Reddit post search
-const RedditSearchSchema = z.object({
+// Combined schema for comprehensive Reddit sentiment analysis
+const RedditSentimentSchema = z.object({
   ticker: z.string(),
   subreddits: z.array(z.string()).default(['stocks', 'wallstreetbets', 'investing', 'SecurityAnalysis']),
   time_filter: z.enum(['hour', 'day', 'week', 'month', 'year']).default('week'),
   limit: z.number().default(25),
   sort: z.enum(['relevance', 'hot', 'top', 'new']).default('hot'),
+  max_posts_for_sentiment: z.number().default(50),
+  include_comments: z.boolean().default(false),
+  post_id_for_comments: z.string().optional(),
+  comment_limit: z.number().default(100),
 });
 
-// Schema for getting Reddit comments
-const RedditCommentsSchema = z.object({
-  post_id: z.string(),
-  limit: z.number().default(100),
-});
-
-// Schema for trending tickers
+// Schema for trending tickers (kept separate)
 const TrendingTickersSchema = z.object({
   subreddits: z.array(z.string()).default(['wallstreetbets', 'stocks']),
   limit: z.number().default(20),
-});
-
-// Schema for social sentiment analysis
-const SocialSentimentSchema = z.object({
-  ticker: z.string(),
-  subreddits: z.array(z.string()).default(['stocks', 'wallstreetbets', 'investing']),
-  time_filter: z.enum(['hour', 'day', 'week', 'month', 'year']).default('week'),
-  max_posts: z.number().default(50),
 });
 
 /**
@@ -37,11 +27,11 @@ const SocialSentimentSchema = z.object({
  * @param configType - Type of configuration that's missing
  * @returns Standard error response object
  */
-function createConfigErrorResponse(configType: 'reddit' | 'openai' | 'social-sentiment') {
+function createConfigErrorResponse(configType: 'reddit' | 'openai' | 'reddit-sentiment') {
   const messages = {
     reddit: 'Reddit API credentials are not configured. Please set REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USERNAME, and REDDIT_PASSWORD environment variables.',
     openai: 'OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable.',
-    'social-sentiment': 'Both Reddit and OpenAI API credentials are required for social sentiment analysis. Please configure both services.',
+    'reddit-sentiment': 'Both Reddit and OpenAI API credentials are required for Reddit sentiment analysis. Please configure both services.',
   };
 
   return {
@@ -55,17 +45,49 @@ function createConfigErrorResponse(configType: 'reddit' | 'openai' | 'social-sen
   };
 }
 
-export async function searchRedditPosts(args: unknown) {
-  if (!isRedditConfigured()) {
-    return createConfigErrorResponse('reddit');
+export async function analyzeRedditSentiment(args: unknown) {
+  if (!isRedditConfigured() || !isOpenAIConfigured()) {
+    return createConfigErrorResponse('reddit-sentiment');
   }
 
   try {
-    const { ticker, subreddits, time_filter, limit, sort } = RedditSearchSchema.parse(args);
+    const { ticker, subreddits, time_filter, limit, sort, max_posts_for_sentiment, include_comments, post_id_for_comments, comment_limit } = RedditSentimentSchema.parse(args);
     
     const reddit = new RedditAdapter();
+    
+    // Get Reddit posts
     const searchResult = await reddit.searchPosts(ticker, subreddits, time_filter, limit, sort);
     
+    if (searchResult.posts.length === 0) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify({
+              ticker: ticker.toUpperCase(),
+              error: 'No Reddit posts found for sentiment analysis',
+              suggestion: 'Try expanding the time filter or checking different subreddits',
+            }, null, 2),
+          },
+        ],
+      };
+    }
+
+    // Get comments if requested
+    let comments = [];
+    if (include_comments && post_id_for_comments) {
+      try {
+        comments = await reddit.getPostComments(post_id_for_comments, comment_limit);
+      } catch (error) {
+        console.warn(`Failed to get comments for post ${post_id_for_comments}:`, error);
+      }
+    }
+
+    // Analyze sentiment with OpenAI
+    const openai = new OpenAIAdapter();
+    const postsForSentiment = searchResult.posts.slice(0, max_posts_for_sentiment);
+    const sentimentAnalysis = await openai.analyzeSocialSentiment(postsForSentiment);
+
     return {
       content: [
         {
@@ -78,8 +100,11 @@ export async function searchRedditPosts(args: unknown) {
               limit,
               sort,
             },
-            results: searchResult,
-            summary: `Found ${searchResult.totalFound} Reddit posts mentioning ${ticker.toUpperCase()}`,
+            posts: searchResult.posts,
+            total_posts_found: searchResult.totalFound,
+            comments: include_comments ? comments : undefined,
+            sentiment_analysis: sentimentAnalysis,
+            summary: `Found ${searchResult.totalFound} Reddit posts for ${ticker.toUpperCase()}. Social sentiment: ${sentimentAnalysis.overallSentiment} (score: ${sentimentAnalysis.sentimentScore})`,
           }, null, 2),
         },
       ],
@@ -89,45 +114,7 @@ export async function searchRedditPosts(args: unknown) {
       content: [
         {
           type: "text" as const,
-          text: `Error searching Reddit posts: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        },
-      ],
-      isError: true,
-    };
-  }
-}
-
-export async function getRedditComments(args: unknown) {
-  if (!isRedditConfigured()) {
-    return createConfigErrorResponse('reddit');
-  }
-
-  try {
-    const { post_id, limit } = RedditCommentsSchema.parse(args);
-    
-    const reddit = new RedditAdapter();
-    const comments = await reddit.getPostComments(post_id, limit);
-    
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: JSON.stringify({
-            post_id,
-            limit,
-            comments,
-            total_comments: comments.length,
-            summary: `Retrieved ${comments.length} comments from Reddit post ${post_id}`,
-          }, null, 2),
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `Error getting Reddit comments: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          text: `Error analyzing Reddit sentiment: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],
       isError: true,
@@ -171,73 +158,6 @@ export async function getTrendingTickers(args: unknown) {
         {
           type: "text" as const,
           text: `Error getting trending tickers: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        },
-      ],
-      isError: true,
-    };
-  }
-}
-
-export async function analyzeSocialSentiment(args: unknown) {
-  if (!isRedditConfigured() || !isOpenAIConfigured()) {
-    return createConfigErrorResponse('social-sentiment');
-  }
-
-  try {
-    const { ticker, subreddits, time_filter, max_posts } = SocialSentimentSchema.parse(args);
-    
-    // Get Reddit posts
-    const reddit = new RedditAdapter();
-    const searchResult = await reddit.searchPosts(ticker, subreddits, time_filter, max_posts, 'hot');
-    
-    if (searchResult.posts.length === 0) {
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: JSON.stringify({
-              ticker: ticker.toUpperCase(),
-              error: 'No Reddit posts found for sentiment analysis',
-              suggestion: 'Try expanding the time filter or checking different subreddits',
-            }, null, 2),
-          },
-        ],
-      };
-    }
-
-    // Analyze sentiment with OpenAI
-    const openai = new OpenAIAdapter();
-    const sentimentAnalysis = await openai.analyzeSocialSentiment(searchResult.posts);
-
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: JSON.stringify({
-            ticker: ticker.toUpperCase(),
-            analysis_params: {
-              subreddits,
-              time_filter,
-              posts_analyzed: searchResult.posts.length,
-            },
-            sentiment_analysis: sentimentAnalysis,
-            top_posts: searchResult.posts.slice(0, 10).map(post => ({
-              title: post.title,
-              score: post.score,
-              subreddit: post.subreddit,
-              url: post.url,
-            })),
-            summary: `Social sentiment: ${sentimentAnalysis.overallSentiment} (score: ${sentimentAnalysis.sentimentScore})`,
-          }, null, 2),
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `Error analyzing social sentiment: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],
       isError: true,

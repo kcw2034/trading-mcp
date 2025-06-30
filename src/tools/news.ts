@@ -2,24 +2,14 @@ import { z } from 'zod';
 import { OpenAIAdapter } from '../adapters/openai.js';
 import { isOpenAIConfigured } from '../config.js';
 
-// Schema for getting latest news
-const LatestNewsSchema = z.object({
+// Combined schema for comprehensive news and market analysis
+const NewsAndMarketContextSchema = z.object({
   ticker: z.string(),
   days_back: z.number().default(7),
   max_articles: z.number().default(10),
   include_sentiment: z.boolean().default(true),
-});
-
-// Schema for news impact analysis
-const NewsImpactSchema = z.object({
-  ticker: z.string(),
-  news_items: z.array(z.string()),
-});
-
-// Schema for market context analysis
-const MarketContextSchema = z.object({
-  ticker: z.string(),
   sector: z.string().optional(),
+  news_items: z.array(z.string()).optional(),
 });
 
 /**
@@ -37,16 +27,29 @@ function createOpenAIConfigErrorResponse() {
   };
 }
 
-export async function getLatestNews(args: unknown) {
+export async function analyzeNewsAndMarketContext(args: unknown) {
   if (!isOpenAIConfigured()) {
     return createOpenAIConfigErrorResponse();
   }
 
   try {
-    const { ticker, days_back, max_articles, include_sentiment } = LatestNewsSchema.parse(args);
+    const { ticker, days_back, max_articles, include_sentiment, sector, news_items } = NewsAndMarketContextSchema.parse(args);
     
     const openai = new OpenAIAdapter();
+    
+    // Get latest news analysis
     const newsAnalysis = await openai.getLatestNews(ticker, days_back, max_articles, include_sentiment);
+    
+    // Get market context
+    const marketContext = await openai.getMarketContext(ticker, sector);
+    
+    // Analyze news impact if specific news items provided, otherwise use articles from news analysis
+    let impactAnalysis = null;
+    const itemsToAnalyze = news_items || newsAnalysis.articles.map(article => `${article.headline}: ${article.summary}`);
+    
+    if (itemsToAnalyze.length > 0) {
+      impactAnalysis = await openai.analyzeNewsImpact(ticker, itemsToAnalyze);
+    }
     
     return {
       content: [
@@ -58,99 +61,12 @@ export async function getLatestNews(args: unknown) {
               days_back,
               max_articles,
               include_sentiment,
+              sector: sector || 'Not specified',
             },
             news_analysis: newsAnalysis,
-            summary: `Found ${newsAnalysis.articles.length} news articles for ${ticker.toUpperCase()}. Overall sentiment: ${newsAnalysis.overallSentiment}`,
-          }, null, 2),
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `Error getting latest news for ${args && typeof args === 'object' && 'ticker' in args ? (args as any).ticker : 'unknown ticker'}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        },
-      ],
-      isError: true,
-    };
-  }
-}
-
-export async function analyzeNewsImpact(args: unknown) {
-  if (!isOpenAIConfigured()) {
-    return createOpenAIConfigErrorResponse();
-  }
-
-  try {
-    const { ticker, news_items } = NewsImpactSchema.parse(args);
-    
-    if (news_items.length === 0) {
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: JSON.stringify({
-              ticker: ticker.toUpperCase(),
-              error: 'No news items provided for analysis',
-              suggestion: 'Please provide an array of news headlines or summaries to analyze',
-            }, null, 2),
-          },
-        ],
-        isError: true,
-      };
-    }
-    
-    const openai = new OpenAIAdapter();
-    const impactAnalysis = await openai.analyzeNewsImpact(ticker, news_items);
-    
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: JSON.stringify({
-            ticker: ticker.toUpperCase(),
-            news_items_analyzed: news_items.length,
-            impact_analysis: impactAnalysis,
-            summary: `News impact for ${ticker.toUpperCase()}: ${impactAnalysis.overallImpact} (impact score: ${impactAnalysis.impactScore}/10)`,
-          }, null, 2),
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `Error analyzing news impact: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        },
-      ],
-      isError: true,
-    };
-  }
-}
-
-export async function getMarketContext(args: unknown) {
-  if (!isOpenAIConfigured()) {
-    return createOpenAIConfigErrorResponse();
-  }
-
-  try {
-    const { ticker, sector } = MarketContextSchema.parse(args);
-    
-    const openai = new OpenAIAdapter();
-    const marketContext = await openai.getMarketContext(ticker, sector);
-    
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: JSON.stringify({
-            ticker: ticker.toUpperCase(),
-            sector: sector || 'Not specified',
             market_context: marketContext,
-            summary: `Market context analysis completed for ${ticker.toUpperCase()}${sector ? ` in ${sector} sector` : ''}`,
+            impact_analysis: impactAnalysis,
+            summary: `Comprehensive analysis for ${ticker.toUpperCase()}: Found ${newsAnalysis.articles.length} news articles (${newsAnalysis.overallSentiment} sentiment)${impactAnalysis ? `, impact score: ${impactAnalysis.impactScore}/10` : ''}`,
           }, null, 2),
         },
       ],
@@ -160,7 +76,7 @@ export async function getMarketContext(args: unknown) {
       content: [
         {
           type: "text" as const,
-          text: `Error getting market context for ${args && typeof args === 'object' && 'ticker' in args ? (args as any).ticker : 'unknown ticker'}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          text: `Error analyzing news and market context for ${args && typeof args === 'object' && 'ticker' in args ? (args as any).ticker : 'unknown ticker'}: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],
       isError: true,

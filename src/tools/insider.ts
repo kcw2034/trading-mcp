@@ -6,10 +6,6 @@ const InsiderActivitySchema = z.object({
   ticker: z.string(),
   limit: z.number().default(10),
   transaction_types: z.array(z.string()).optional(),
-});
-
-const InsiderSentimentSchema = z.object({
-  ticker: z.string(),
   analysis_period: z.number().default(90),
   min_transaction_value: z.number().default(10000),
 });
@@ -121,9 +117,9 @@ class InsiderTransactionProcessor {
   }
 }
 
-export async function getInsiderActivity(args: unknown) {
+export async function analyzeInsiderActivity(args: unknown) {
   try {
-    const { ticker, limit, transaction_types } = InsiderActivitySchema.parse(args);
+    const { ticker, limit, transaction_types, analysis_period, min_transaction_value } = InsiderActivitySchema.parse(args);
     
     const finviz = new FinvizAdapter();
     const insiderActivity = await finviz.getInsiderActivity(ticker);
@@ -138,8 +134,11 @@ export async function getInsiderActivity(args: unknown) {
       );
     }
     
-    // Limit results
+    // Limit results for display
     const limitedTransactions = filteredTransactions.slice(0, limit);
+    
+    // Calculate sentiment analysis using all transactions (not limited)
+    const sentiment = calculateInsiderSentiment(insiderActivity.transactions, analysis_period, min_transaction_value);
     
     return {
       content: [
@@ -150,45 +149,10 @@ export async function getInsiderActivity(args: unknown) {
             transactions: limitedTransactions,
             total_transactions: limitedTransactions.length,
             filtered_by: transaction_types || 'all types',
-            summary: `Found ${limitedTransactions.length} insider transactions for ${ticker.toUpperCase()}`,
-          }, null, 2),
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `Error getting insider activity for ${args && typeof args === 'object' && 'ticker' in args ? (args as any).ticker : 'unknown ticker'}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        },
-      ],
-      isError: true,
-    };
-  }
-}
-
-export async function analyzeInsiderSentiment(args: unknown) {
-  try {
-    const { ticker, analysis_period, min_transaction_value } = InsiderSentimentSchema.parse(args);
-    
-    const finviz = new FinvizAdapter();
-    const insiderActivity = await finviz.getInsiderActivity(ticker);
-    
-    // Calculate sentiment analysis
-    const sentiment = calculateInsiderSentiment(insiderActivity.transactions, analysis_period, min_transaction_value);
-    
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: JSON.stringify({
-            ticker: ticker.toUpperCase(),
             analysis_period_days: analysis_period,
             min_transaction_value,
             sentiment_analysis: sentiment,
-            raw_transactions: insiderActivity.transactions,
-            summary: `Insider sentiment: ${sentiment.overall_sentiment} (${sentiment.confidence_level} confidence)`,
+            summary: `Found ${limitedTransactions.length} insider transactions for ${ticker.toUpperCase()}. Insider sentiment: ${sentiment.overall_sentiment} (${sentiment.confidence_level} confidence)`,
           }, null, 2),
         },
       ],
@@ -198,7 +162,7 @@ export async function analyzeInsiderSentiment(args: unknown) {
       content: [
         {
           type: "text" as const,
-          text: `Error analyzing insider sentiment for ${args && typeof args === 'object' && 'ticker' in args ? (args as any).ticker : 'unknown ticker'}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          text: `Error analyzing insider activity for ${args && typeof args === 'object' && 'ticker' in args ? (args as any).ticker : 'unknown ticker'}: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],
       isError: true,
@@ -206,7 +170,7 @@ export async function analyzeInsiderSentiment(args: unknown) {
   }
 }
 
-function calculateInsiderSentiment(transactions: InsiderTransaction[], analysisPeriod: number, minValue: number) {
+export function calculateInsiderSentiment(transactions: InsiderTransaction[], analysisPeriod: number, minValue: number) {
   const processor = new InsiderTransactionProcessor(transactions, analysisPeriod, minValue);
   const relevantTransactions = processor.getRelevantTransactions();
   
