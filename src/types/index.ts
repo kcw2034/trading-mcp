@@ -171,4 +171,8 @@ export interface PutCallRatioAnalysis {
     interpretation: string;
     keyInsights: string[];
   };
+  validationResult: {
+    isValid: boolean;
+    warnings: string[];
+  };
 }

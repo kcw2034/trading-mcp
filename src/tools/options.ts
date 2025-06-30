@@ -12,6 +12,28 @@ export async function getPutCallRatio(args: unknown) {
     const barchart = new BarchartAdapter();
     const ratioData = await barchart.getPutCallRatio(ticker);
     
+    if (!ratioData.validationResult.isValid) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify({
+              ticker: ticker.toUpperCase(),
+              error: 'Failed to extract valid put/call ratio data',
+              details: ratioData.validationResult.warnings,
+              put_call_analysis: ratioData,
+              summary: `Data extraction failed for ${ticker.toUpperCase()}. ${ratioData.validationResult.warnings.join('; ')}`,
+            }, null, 2),
+          },
+        ],
+        isError: true,
+      };
+    }
+    
+    const warnings = ratioData.validationResult.warnings.length > 0 
+      ? ` (Warnings: ${ratioData.validationResult.warnings.join('; ')})`
+      : '';
+    
     return {
       content: [
         {
@@ -19,9 +41,13 @@ export async function getPutCallRatio(args: unknown) {
           text: JSON.stringify({
             ticker: ticker.toUpperCase(),
             put_call_analysis: ratioData,
-            summary: `Retrieved put/call ratio data for ${ticker.toUpperCase()}. Overall volume ratio: ${ratioData.overallPutCallVolumeRatio.toFixed(2)} (${ratioData.analysis.sentiment} sentiment)`,
+            summary: `Retrieved put/call ratio data for ${ticker.toUpperCase()}. Overall volume ratio: ${ratioData.overallPutCallVolumeRatio.toFixed(2)} (${ratioData.analysis.sentiment} sentiment)${warnings}`,
             interpretation: ratioData.analysis.interpretation,
             key_insights: ratioData.analysis.keyInsights,
+            data_quality: {
+              is_valid: ratioData.validationResult.isValid,
+              warnings: ratioData.validationResult.warnings,
+            },
           }, null, 2),
         },
       ],
