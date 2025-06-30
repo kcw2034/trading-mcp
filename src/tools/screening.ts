@@ -72,7 +72,11 @@ export function buildScreeningFilters(options: {
   geo?: 'usa' | 'foreign';
   marketCap?: 'nano' | 'micro' | 'small' | 'mid' | 'large' | 'mega';
   profitable?: boolean;
+  forwardPeProfitable?: boolean;
   peRange?: 'low' | 'high' | 'u5' | 'u10' | 'u15' | 'u20' | 'u25' | 'o5' | 'o10' | 'o15' | 'o20' | 'o25';
+  forwardPeRange?: 'low' | 'high' | 'u5' | 'u10' | 'u15' | 'u20' | 'u25' | 'o5' | 'o10' | 'o15' | 'o20' | 'o25';
+  pegRange?: 'u1' | 'u2' | 'u3' | 'o1' | 'o2' | 'o3';
+  technicalPattern?: string; // e.g., 'channeldown', 'channelup', etc.
   signal?: string; // Use signal instead of technicalPattern for proper Finviz support
   orderBy?: string;
 }): { f: string; s?: string; o?: string } {
@@ -90,8 +94,24 @@ export function buildScreeningFilters(options: {
     filters.push('fa_pe_profitable');
   }
   
+  if (options.forwardPeProfitable) {
+    filters.push('fa_fpe_profitable');
+  }
+  
   if (options.peRange) {
     filters.push(`fa_pe_${options.peRange}`);
+  }
+  
+  if (options.forwardPeRange) {
+    filters.push(`fa_fpe_${options.forwardPeRange}`);
+  }
+  
+  if (options.pegRange) {
+    filters.push(`fa_peg_${options.pegRange}`);
+  }
+  
+  if (options.technicalPattern) {
+    filters.push(`ta_pattern_${options.technicalPattern}`);
   }
   
   const result: { f: string; s?: string; o?: string } = {
@@ -212,6 +232,22 @@ export const FINVIZ_FILTERS = {
   fa_peg_o1: 'PEG ratio > 1',
   fa_peg_o2: 'PEG ratio > 2',
   fa_peg_o3: 'PEG ratio > 3',
+  
+  // Forward P/E ratio filters
+  fa_fpe_profitable: 'Forward P/E ratio > 0 (profitable companies)',
+  fa_fpe_pos: 'Forward P/E ratio > 0 (same as profitable)',
+  fa_fpe_low: 'Forward P/E ratio < 15',
+  fa_fpe_high: 'Forward P/E ratio > 25',
+  fa_fpe_u5: 'Forward P/E ratio < 5',
+  fa_fpe_u10: 'Forward P/E ratio < 10',
+  fa_fpe_u15: 'Forward P/E ratio < 15',
+  fa_fpe_u20: 'Forward P/E ratio < 20',
+  fa_fpe_u25: 'Forward P/E ratio < 25',
+  fa_fpe_o5: 'Forward P/E ratio > 5',
+  fa_fpe_o10: 'Forward P/E ratio > 10',
+  fa_fpe_o15: 'Forward P/E ratio > 15',
+  fa_fpe_o20: 'Forward P/E ratio > 20',
+  fa_fpe_o25: 'Forward P/E ratio > 25',
   
   // Technical pattern filters (use in "f" parameter)
   ta_pattern_channeldown: 'Channel Down pattern',
