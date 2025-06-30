@@ -38,7 +38,7 @@ const tools: Tool[] = [
       properties: {
         filters: {
           type: 'object',
-          description: 'Advanced filter parameters using Finviz format. Use "f" for basic filters (comma-separated), "s" for technical signals, "o" for ordering. Example: {"f": "cap_large,fa_pe_profitable,geo_usa", "s": "ta_p_channeldown", "o": "marketcap"}',
+          description: 'Advanced filter parameters using Finviz format. Use "f" for basic filters including technical patterns (comma-separated), "o" for ordering. Technical patterns should use ta_pattern_* format (e.g., ta_pattern_channeldown). Example: {"f": "cap_large,fa_pe_profitable,geo_usa,ta_pattern_channeldown", "o": "marketcap"}',
           default: {},
         },
         limit: {

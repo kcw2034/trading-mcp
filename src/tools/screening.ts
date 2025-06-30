@@ -4,35 +4,20 @@ import { FinvizAdapter } from '../adapters/finviz.js';
 // Schema for advanced stock filter
 const AdvancedFilterSchema = z.object({
   filters: z.record(z.string()).default({}),
-  signal: z.string().optional(),
   limit: z.number().default(50),
 });
 
 /**
- * Advanced stock filtering using proper Finviz parameter format
- * 
- * IMPORTANT: Distinguish between patterns and signals:
- * - PATTERNS: Static chart patterns like "ta_pattern_channeldown" go in "f" parameter
- * - SIGNALS: Dynamic technical signals like "ta_p_channeldown" go in "s" parameter
- * 
- * Filter format should use:
- * - "f": comma-separated basic filters including patterns (e.g., "cap_large,fa_pe_profitable,geo_usa,ta_pattern_channeldown")
- * - "s": technical signals (e.g., "ta_p_channeldown", "ta_p_channelup") - DIFFERENT from patterns!
- * - "o": ordering/sorting (e.g., "marketcap", "pe", "volume")
- * 
- * Example usage for channel down pattern:
- * {"f": "cap_large,fa_pe_profitable,geo_usa,ta_pattern_channeldown", "o": "marketcap"}
- * 
- * Example usage for channel down signal:
- * {"f": "cap_large,fa_pe_profitable,geo_usa", "s": "ta_p_channeldown", "o": "marketcap"}
+ * Advanced stock filtering using Finviz parameter format
+ * - Technical patterns: use ta_pattern_* in "f" parameter (e.g., ta_pattern_channeldown)
  */
 
 export async function advancedStockFilter(args: unknown) {
   try {
-    const { filters, signal, limit } = AdvancedFilterSchema.parse(args);
+    const { filters, limit } = AdvancedFilterSchema.parse(args);
     
     const finviz = new FinvizAdapter();
-    const results = await finviz.advancedFilter(filters, signal);
+    const results = await finviz.advancedFilter(filters);
     
     const limitedResults = results.slice(0, limit);
     
@@ -43,12 +28,11 @@ export async function advancedStockFilter(args: unknown) {
           text: JSON.stringify({
             query: {
               filters,
-              signal,
               limit,
             },
             results: limitedResults,
             total_found: limitedResults.length,
-            summary: `Applied advanced filters${signal ? ` with signal '${signal}'` : ''} and found ${limitedResults.length} matching stocks`,
+            summary: `Applied advanced filters and found ${limitedResults.length} matching stocks`,
             applied_filters: Object.keys(filters).length,
           }, null, 2),
         },
@@ -67,7 +51,7 @@ export async function advancedStockFilter(args: unknown) {
   }
 }
 
-// Helper function to build common filter combinations with optional signal
+// Helper function to build common filter combinations
 export function buildScreeningFilters(options: {
   geo?: 'usa' | 'foreign';
   marketCap?: 'nano' | 'micro' | 'small' | 'mid' | 'large' | 'mega';
@@ -77,9 +61,8 @@ export function buildScreeningFilters(options: {
   forwardPeRange?: 'low' | 'high' | 'u5' | 'u10' | 'u15' | 'u20' | 'u25' | 'o5' | 'o10' | 'o15' | 'o20' | 'o25';
   pegRange?: 'u1' | 'u2' | 'u3' | 'o1' | 'o2' | 'o3';
   technicalPattern?: string; // e.g., 'channeldown', 'channelup', etc.
-  signal?: string; // Use signal instead of technicalPattern for proper Finviz support
   orderBy?: string;
-}): { f: string; s?: string; o?: string } {
+}): { f: string; o?: string } {
   const filters: string[] = [];
   
   if (options.geo) {
@@ -114,13 +97,9 @@ export function buildScreeningFilters(options: {
     filters.push(`ta_pattern_${options.technicalPattern}`);
   }
   
-  const result: { f: string; s?: string; o?: string } = {
+  const result: { f: string; o?: string } = {
     f: filters.join(',')
   };
-  
-  if (options.signal) {
-    result.s = options.signal;
-  }
   
   if (options.orderBy) {
     result.o = options.orderBy;
@@ -266,22 +245,4 @@ export const FINVIZ_FILTERS = {
   ta_pattern_multiplebottom: 'Multiple Bottom pattern',
 };
 
-export const FINVIZ_SIGNALS = {
-  ta_p_channeldown: 'Channel Down signal',
-  ta_p_channelup: 'Channel Up signal',
-  
-  ta_p_tlresistance: 'Trendline Resistance signal',
-  ta_p_tlsupport: 'Trendline Support signal',
-  
-  ta_p_triangleascending: 'Ascending Triangle signal',
-  ta_p_triangledescending: 'Descending Triangle signal',
 
-  ta_p_wedgeascending: 'Ascending Wedge signal',
-  ta_p_wedgedescending: 'Descending Wedge signal',
-
-  ta_p_support: 'Support Level signal',
-  ta_p_resistance: 'Resistance Level signal',
-
-  ta_p_breakout: 'Breakout signal',
-  ta_p_breakdown: 'Breakdown signal',
-};
