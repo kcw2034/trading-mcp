@@ -94,8 +94,7 @@ export class FinvizAdapter {
   private buildScreenerUrl(pattern: string, marketCap: string, geo: string): string {
     const params = new URLSearchParams({
       v: '111', // Table view
-      s: `ta_p_${pattern}`,
-      f: `cap_${marketCap},geo_${geo}`,
+      f: `cap_${marketCap},geo_${geo},ta_pattern_${pattern}`, // Put pattern in filters, not signals
       ft: '4'
     });
     return `${this.screenerUrl}?${params}`;

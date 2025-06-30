@@ -11,12 +11,19 @@ const AdvancedFilterSchema = z.object({
 /**
  * Advanced stock filtering using proper Finviz parameter format
  * 
+ * IMPORTANT: Distinguish between patterns and signals:
+ * - PATTERNS: Static chart patterns like "ta_pattern_channeldown" go in "f" parameter
+ * - SIGNALS: Dynamic technical signals like "ta_p_channeldown" go in "s" parameter
+ * 
  * Filter format should use:
- * - "f": comma-separated basic filters (e.g., "cap_large,fa_pe_profitable,geo_usa")
- * - "s": technical signals (e.g., "ta_p_channeldown", "ta_p_channelup")
+ * - "f": comma-separated basic filters including patterns (e.g., "cap_large,fa_pe_profitable,geo_usa,ta_pattern_channeldown")
+ * - "s": technical signals (e.g., "ta_p_channeldown", "ta_p_channelup") - DIFFERENT from patterns!
  * - "o": ordering/sorting (e.g., "marketcap", "pe", "volume")
  * 
- * Example usage:
+ * Example usage for channel down pattern:
+ * {"f": "cap_large,fa_pe_profitable,geo_usa,ta_pattern_channeldown", "o": "marketcap"}
+ * 
+ * Example usage for channel down signal:
  * {"f": "cap_large,fa_pe_profitable,geo_usa", "s": "ta_p_channeldown", "o": "marketcap"}
  */
 
@@ -198,40 +205,47 @@ export const FINVIZ_FILTERS = {
   fa_pe_o20: 'P/E ratio > 20',
   fa_pe_o25: 'P/E ratio > 25',
   
-  // Technical pattern filters (deprecated - use FINVIZ_SIGNALS instead)
+  // PEG ratio filters
+  fa_peg_u1: 'PEG ratio < 1',
+  fa_peg_u2: 'PEG ratio < 2',
+  fa_peg_u3: 'PEG ratio < 3',
+  fa_peg_o1: 'PEG ratio > 1',
+  fa_peg_o2: 'PEG ratio > 2',
+  fa_peg_o3: 'PEG ratio > 3',
+  
+  // Technical pattern filters (use in "f" parameter)
   ta_pattern_channeldown: 'Channel Down pattern',
   ta_pattern_channelup: 'Channel Up pattern',
-  ta_pattern_tlresistance: 'Trendline Resistance',
-  ta_pattern_tlsupport: 'Trendline Support',
-  ta_pattern_triangleascending: 'Ascending Triangle',
-  ta_pattern_triangledescending: 'Descending Triangle',
-  ta_pattern_wedgeascending: 'Ascending Wedge',
-  ta_pattern_wedgedescending: 'Descending Wedge',
+  ta_pattern_tlresistance: 'Trendline Resistance pattern',
+  ta_pattern_tlsupport: 'Trendline Support pattern',
+  ta_pattern_triangleascending: 'Ascending Triangle pattern',
+  ta_pattern_triangledescending: 'Descending Triangle pattern',
+  ta_pattern_wedgeascending: 'Ascending Wedge pattern',
+  ta_pattern_wedgedescending: 'Descending Wedge pattern',
+  ta_pattern_headandshoulders: 'Head and Shoulders pattern',
+  ta_pattern_headandshouldersinv: 'Inverse Head and Shoulders pattern',
+  ta_pattern_doubletop: 'Double Top pattern',
+  ta_pattern_doublebottom: 'Double Bottom pattern',
+  ta_pattern_multipletop: 'Multiple Top pattern',
+  ta_pattern_multiplebottom: 'Multiple Bottom pattern',
 };
 
-// Technical signals for use with "s" parameter (preferred over patterns)
 export const FINVIZ_SIGNALS = {
-  // Channel patterns
   ta_p_channeldown: 'Channel Down signal',
   ta_p_channelup: 'Channel Up signal',
   
-  // Trendline patterns  
   ta_p_tlresistance: 'Trendline Resistance signal',
   ta_p_tlsupport: 'Trendline Support signal',
   
-  // Triangle patterns
   ta_p_triangleascending: 'Ascending Triangle signal',
   ta_p_triangledescending: 'Descending Triangle signal',
-  
-  // Wedge patterns
+
   ta_p_wedgeascending: 'Ascending Wedge signal',
   ta_p_wedgedescending: 'Descending Wedge signal',
-  
-  // Support and resistance
+
   ta_p_support: 'Support Level signal',
   ta_p_resistance: 'Resistance Level signal',
-  
-  // Breakout patterns
+
   ta_p_breakout: 'Breakout signal',
   ta_p_breakdown: 'Breakdown signal',
 };
