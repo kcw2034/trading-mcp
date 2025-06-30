@@ -6,7 +6,7 @@ import { isRedditConfigured, isOpenAIConfigured } from '../config.js';
 // Combined schema for comprehensive Reddit sentiment analysis
 const RedditSentimentSchema = z.object({
   ticker: z.string(),
-  subreddits: z.array(z.string()).default(['stocks', 'wallstreetbets', 'investing', 'SecurityAnalysis']),
+  subreddits: z.array(z.string()).default(['stocks', 'wallstreetbets', 'investing', 'ValueInvesting']),
   time_filter: z.enum(['hour', 'day', 'week', 'month', 'year']).default('week'),
   limit: z.number().default(25),
   sort: z.enum(['relevance', 'hot', 'top', 'new']).default('hot'),

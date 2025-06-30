@@ -38,61 +38,57 @@ Add this to your MCP configuration file (typically `~/.cursor/mcp.json` or your 
 
 **Note:** 
 - OpenAI API key is required for news analysis and social sentiment analysis
-- Reddit credentials are optional but enable social media research features
+- Reddit credentials are required for social media research features
 
 ### Stock Screening Tools
 
 #### `screen_stocks_advanced_filters`
-Comprehensive stock screening using Finviz filters that supports technical patterns, fundamental criteria, and multi-parameter filtering. Use this when you need to find stocks matching specific investment criteria like channel down patterns, profitable companies, or large-cap stocks. The tool returns a ranked list of stocks with key metrics including market cap, P/E ratios, and current prices. Supports complex filter combinations for advanced screening strategies using Finviz format parameters.
+Advanced stock screening using Finviz filters with support for technical patterns, fundamental criteria, and multi-parameter filtering. Returns stocks matching specific criteria with key metrics.
 
 **Parameters:**
-- `filters` (object): Advanced filter parameters using Finviz format. Use "f" for basic filters including technical patterns (comma-separated), "o" for ordering. Technical patterns should use ta_pattern_* format (e.g., ta_pattern_channeldown). Example: `{"f": "cap_large,fa_pe_profitable,geo_usa,ta_pattern_channeldown", "o": "marketcap"}`
-- `limit` (number, default: 50): Maximum number of results to return
+- `filters` (object): Finviz format filters. Use "f" for basic filters, "o" for ordering. Example: `{"f": "cap_large,fa_pe_profitable,ta_pattern_channeldown", "o": "marketcap"}`
+- `limit` (number, default: 50): Maximum results to return
 
 ### Fundamental Analysis Tools
 
 #### `get_fundamental_stock_metrics`
-Comprehensive fundamental analysis tool that retrieves detailed financial metrics including P/E ratios, PEG, ROE, debt ratios, growth rates, and profitability margins. Use this when conducting deep fundamental analysis of individual stocks for investment decisions or valuation assessments. The tool returns complete financial data with key ratios, growth metrics, and profitability indicators. Supports selective metric retrieval for targeted analysis.
+Retrieves comprehensive financial metrics including P/E ratios, PEG, ROE, debt ratios, growth rates, and profitability margins.
 
 **Parameters:**
 - `ticker` (string, required): Stock ticker symbol
 - `metrics` (array, optional): Specific metrics to retrieve (returns all if not specified)
 
 #### `compare_stock_valuations`
-Relative valuation analysis tool that compares key valuation metrics across multiple stocks to identify undervalued or overvalued opportunities. Use this when performing peer analysis, sector comparisons, or evaluating multiple investment candidates side-by-side. The tool returns a comparative analysis with P/E, PEG, Price-to-Book ratios and highlights relative value opportunities. Essential for making informed investment decisions based on relative attractiveness.
+Compares valuation metrics across multiple stocks to identify relative value opportunities. Perfect for peer analysis and sector comparisons.
 
 **Parameters:**
-- `tickers` (array, required): Array of stock ticker symbols to compare
+- `tickers` (array, required): Stock ticker symbols to compare
 - `metrics` (array, default: ['pe', 'forwardPE', 'peg', 'priceToBook']): Valuation metrics to compare
 
 #### `calculate_financial_health_score`
-Financial health analysis tool that calculates a comprehensive score based on profitability, liquidity, leverage, efficiency, and growth metrics. Use this when evaluating the overall financial strength of a company for investment decisions, risk assessment, or portfolio screening. Returns a weighted health score (0-100) with detailed breakdowns of each category, component analysis, and actionable insights. Allows custom weighting of different financial factors to match your investment strategy.
+Calculates a comprehensive financial health score (0-100) based on profitability, liquidity, leverage, efficiency, and growth metrics with customizable weightings.
 
 **Parameters:**
 - `ticker` (string, required): Stock ticker symbol
-- `weights` (object, optional): Custom weights for different health factors
-  - `profitability` (number, default: 0.3)
-  - `liquidity` (number, default: 0.2)
-  - `leverage` (number, default: 0.2)
-  - `efficiency` (number, default: 0.15)
-  - `growth` (number, default: 0.15)
+- `weights` (object, optional): Custom weights for health factors
+  - `profitability` (default: 0.3), `liquidity` (default: 0.2), `leverage` (default: 0.2), `efficiency` (default: 0.15), `growth` (default: 0.15)
 
 ### Insider Trading Tools
 
 #### `analyze_insider_activity`
-Comprehensive insider trading analysis tool that monitors recent transactions and analyzes sentiment patterns. Retrieves buy/sell activity by executives, directors, and major shareholders, then evaluates trading patterns to determine overall insider confidence (bullish, bearish, neutral). Returns detailed transaction history with sentiment analysis, confidence scores, and key insights about insider motivation. Essential for identifying stocks with strong insider support or potential red flags.
+Monitors insider transactions and analyzes sentiment patterns. Returns transaction history with sentiment analysis and confidence scores.
 
 **Parameters:**
 - `ticker` (string, required): Stock ticker symbol
-- `limit` (number, default: 10): Maximum number of transactions to return for display
-- `transaction_types` (array, optional): Filter by transaction types (buy, sell, etc.)
-- `analysis_period` (number, default: 90): Analysis period in days for sentiment calculation
-- `min_transaction_value` (number, default: 10000): Minimum transaction value to include in sentiment analysis
+- `limit` (number, default: 10): Maximum transactions to return
+- `transaction_types` (array, optional): Filter by transaction types
+- `analysis_period` (number, default: 90): Analysis period in days
+- `min_transaction_value` (number, default: 10000): Minimum transaction value threshold
 
 ### Options Analysis Tools
 
 #### `get_put_call_ratio`
-Options market analysis tool that retrieves put/call ratio data from Barchart to assess market sentiment and options flow. Use this when analyzing options market sentiment, detecting potential market reversals, or understanding institutional hedging activity. The tool returns comprehensive put/call ratios for different expiration dates, volume and open interest data, and AI-powered sentiment analysis. Higher put/call ratios typically indicate bearish sentiment, while lower ratios suggest bullish sentiment. Essential for options traders and investors looking to gauge market sentiment.
+Retrieves put/call ratio data from Barchart to assess options market sentiment. Returns ratios by expiration with sentiment analysis.
 
 **Parameters:**
 - `ticker` (string, required): Stock ticker symbol
@@ -100,7 +96,7 @@ Options market analysis tool that retrieves put/call ratio data from Barchart to
 ### Comprehensive Analysis Tools
 
 #### `comprehensive_stock_analysis`
-Ultimate comprehensive stock analysis tool that combines multiple analyses in parallel to provide a complete investment evaluation. Executes fundamental metrics, financial health scoring, insider trading analysis, put/call ratio analysis, and when configured, news analysis and Reddit sentiment analysis. Use this when you need a complete overview of a stock across all analysis dimensions for investment decision-making. Returns a formatted report with all analysis results, key insights, and investment summary.
+All-in-one stock analysis combining fundamental metrics, financial health scoring, insider analysis, options sentiment, news analysis, and social sentiment when configured.
 
 **Parameters:**
 - `ticker` (string, required): Stock ticker symbol to analyze
@@ -109,41 +105,41 @@ Ultimate comprehensive stock analysis tool that combines multiple analyses in pa
 *Requires Reddit API configuration*
 
 #### `discover_trending_stocks`
-Social momentum detection tool that identifies stocks gaining significant attention and discussion volume across Reddit investing communities. Use this when looking for emerging investment opportunities, detecting viral stock movements, or identifying potential meme stock candidates before they peak. The tool returns ranked lists of trending tickers with mention frequency, sentiment indicators, and community engagement metrics. Perfect for staying ahead of retail investor trends and social media-driven market movements.
+Identifies stocks gaining attention across Reddit investing communities. Returns trending tickers with mention frequency and engagement metrics.
 
 **Parameters:**
-- `subreddits` (array, default: ['wallstreetbets', 'stocks']): Subreddits to analyze for trending tickers
-- `limit` (number, default: 20): Maximum number of trending tickers to return
+- `subreddits` (array, default: ['wallstreetbets', 'stocks']): Subreddits to analyze
+- `limit` (number, default: 20): Maximum trending tickers to return
 
 #### `analyze_reddit_sentiment`
 *Requires both Reddit and OpenAI APIs*
 
-Comprehensive Reddit sentiment analysis tool that searches for stock discussions across multiple investing subreddits and uses AI to analyze retail investor sentiment. Combines Reddit post search, optional comment extraction, and advanced sentiment classification to gauge community opinion and engagement. Use this when assessing retail investor sentiment, detecting sentiment shifts, or validating investment decisions against community consensus. Returns posts, sentiment analysis with confidence scores, key themes, and community engagement metrics.
+Searches Reddit discussions and uses AI to analyze retail investor sentiment. Returns posts with sentiment analysis and confidence scores.
 
 **Parameters:**
 - `ticker` (string, required): Stock ticker symbol
-- `subreddits` (array, default: ['stocks', 'wallstreetbets', 'investing', 'SecurityAnalysis']): Subreddits to search for discussions
-- `time_filter` (string, default: 'week'): Time period to search within ('hour', 'day', 'week', 'month', 'year')
-- `limit` (number, default: 25): Maximum number of posts to retrieve
-- `sort` (string, default: 'hot'): Sort order for results ('relevance', 'hot', 'top', 'new')
-- `max_posts_for_sentiment` (number, default: 50): Maximum number of posts to use for sentiment analysis
-- `include_comments` (boolean, default: false): Whether to include comments from a specific post
-- `post_id_for_comments` (string, optional): Specific post ID to retrieve comments from
-- `comment_limit` (number, default: 100): Maximum number of comments to retrieve if include_comments is true
+- `subreddits` (array, default: ['stocks', 'wallstreetbets', 'investing', 'ValueInvesting']): Subreddits to search
+- `time_filter` (string, default: 'week'): Time period ('hour', 'day', 'week', 'month', 'year')
+- `limit` (number, default: 25): Maximum posts to retrieve
+- `sort` (string, default: 'hot'): Sort order ('relevance', 'hot', 'top', 'new')
+- `max_posts_for_sentiment` (number, default: 50): Posts to use for sentiment analysis
+- `include_comments` (boolean, default: false): Include comments from specific post
+- `post_id_for_comments` (string, optional): Post ID for comment retrieval
+- `comment_limit` (number, default: 100): Maximum comments if including comments
 
 ### News Analysis Tools
 *Requires OpenAI API configuration*
 
 #### `analyze_news_and_market_context`
-Comprehensive news and market analysis tool that combines recent news sentiment analysis, market impact assessment, and broader sector context analysis. Use this when researching current events affecting a stock, evaluating news-driven price movements, or understanding how individual stocks fit into current market trends. Returns analyzed articles with sentiment scores, impact predictions, sector performance analysis, and macroeconomic context. Essential for making informed investment decisions based on current market conditions.
+Combines news sentiment analysis, market impact assessment, and sector context analysis. Returns analyzed articles with sentiment scores and market predictions.
 
 **Parameters:**
 - `ticker` (string, required): Stock ticker symbol
-- `days_back` (number, default: 7): Number of days to look back for news
-- `max_articles` (number, default: 10): Maximum number of articles to analyze
-- `include_sentiment` (boolean, default: true): Include sentiment analysis for each article
-- `sector` (string, optional): Stock sector for enhanced context analysis
-- `news_items` (array, optional): Specific news headlines or summaries to analyze for market impact
+- `days_back` (number, default: 7): Days to look back for news
+- `max_articles` (number, default: 10): Maximum articles to analyze
+- `include_sentiment` (boolean, default: true): Include sentiment analysis
+- `sector` (string, optional): Stock sector for enhanced context
+- `news_items` (array, optional): Specific headlines to analyze
 
 ## 🛠️ Installation & Setup
 

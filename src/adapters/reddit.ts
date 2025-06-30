@@ -16,7 +16,7 @@ export class RedditAdapter {
 
   async searchPosts(
     ticker: string,
-    subreddits: string[] = ['stocks', 'wallstreetbets', 'investing', 'SecurityAnalysis'],
+    subreddits: string[] = ['stocks', 'wallstreetbets', 'investing', 'ValueInvesting'],
     timeFilter: 'hour' | 'day' | 'week' | 'month' | 'year' = 'week',
     limit = 25,
     sort: 'relevance' | 'hot' | 'top' | 'new' = 'hot'

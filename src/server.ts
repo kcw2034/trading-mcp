@@ -265,7 +265,7 @@ if (isRedditConfigured() && isOpenAIConfigured()) {
           type: 'array',
           items: { type: 'string' },
           description: 'Subreddits to search for discussions',
-          default: ['stocks', 'wallstreetbets', 'investing', 'SecurityAnalysis'],
+          default: ['stocks', 'wallstreetbets', 'investing', 'ValueInvesting'],
         },
         time_filter: {
           type: 'string',
