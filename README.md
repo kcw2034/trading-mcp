@@ -2,6 +2,12 @@
 
 A comprehensive Model Context Protocol (MCP) server for stock analysis and trading insights. This server provides advanced stock screening, fundamental analysis, insider trading data, social media sentiment, and news analysis capabilities.
 
+## 🎬 Demo
+
+![Trading MCP Server Demo](./assets/trading-mcp-demo.gif)
+
+*See the Trading MCP Server in action - from stock screening to comprehensive analysis*
+
 ## 📋 MCP Configuration
 
 Add this to your MCP configuration file (typically `~/.cursor/mcp.json` or your IDE's MCP settings):
