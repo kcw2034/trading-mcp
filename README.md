@@ -4,7 +4,7 @@ A comprehensive Model Context Protocol (MCP) server for stock analysis and tradi
 
 ## 🎬 Demo
 
-![Trading MCP Server Demo](./assets/trading-mcp-demo.gif)
+https://github.com/user-attachments/assets/71995014-7cbb-48fa-80fb-f1f6d22fc91c
 
 *See the Trading MCP Server in action - from stock screening to comprehensive analysis*
 
