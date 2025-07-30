@@ -184,8 +184,9 @@ Add the MCP configuration shown above to your MCP client settings with your API 
 1. Visit [Reddit App Preferences](https://www.reddit.com/prefs/apps)
 2. Click "Create App" or "Create Another App"
 3. Choose "script" as the app type
-4. Note your `client_id` and `client_secret`
-5. Add your Reddit credentials to your MCP configuration
+4. Use a dummy redirect URI such as `http://localhost:8080`
+5. Note your `client_id` and `client_secret`
+6. Add your Reddit credentials to your MCP configuration
 
 ## 🏗️ Architecture
 
